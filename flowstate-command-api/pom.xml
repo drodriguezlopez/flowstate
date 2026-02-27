@@ -9,18 +9,11 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>flowstate-query-api</artifactId>
+    <artifactId>flowstate-command-api</artifactId>
     <packaging>jar</packaging>
-    <name>FlowState Query API</name>
-    <description>Query Gateway - Entry point for read operations</description>
-
-    <dependencies>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-mongodb</artifactId>
-        </dependency>
-    </dependencies>
-
+    <name>FlowState Command API</name>
+    <description>Command Gateway - Entry point for write operations</description>
+    
     <build>
         <plugins>
             <plugin>
@@ -34,10 +27,10 @@
                             <goal>generate</goal>
                         </goals>
                         <configuration>
-                            <inputSpec>${project.parent.basedir}/contracts/openapi-queries.yaml</inputSpec>
+                            <inputSpec>${project.parent.basedir}/contracts/openapi-commands.yaml</inputSpec>
                             <generatorName>spring</generatorName>
-                            <apiPackage>es.drodriguezlopez.flowstate.queryapi.api</apiPackage>
-                            <modelPackage>es.drodriguezlopez.flowstate.queryapi.contract</modelPackage>
+                            <apiPackage>es.drodriguezlopez.flowstate.commandapi.api</apiPackage>
+                            <modelPackage>es.drodriguezlopez.flowstate.commandapi.contract</modelPackage>
                             <generateSupportingFiles>false</generateSupportingFiles>
                             <configOptions>
                                 <interfaceOnly>true</interfaceOnly>
@@ -58,4 +51,3 @@
         </plugins>
     </build>
 </project>
-

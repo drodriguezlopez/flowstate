@@ -20,14 +20,46 @@
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-validation</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.springframework.kafka</groupId>
             <artifactId>spring-kafka</artifactId>
         </dependency>
     </dependencies>
 
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.openapitools</groupId>
+                <artifactId>openapi-generator-maven-plugin</artifactId>
+                <version>7.20.0</version>
+                <executions>
+                    <execution>
+                        <id>generate-sources</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <inputSpec>${project.parent.basedir}/contracts/openapi-commands.yaml</inputSpec>
+                            <generatorName>spring</generatorName>
+                            <apiPackage>es.drodriguezlopez.flowstate.commandhandler.api</apiPackage>
+                            <modelPackage>es.drodriguezlopez.flowstate.commandhandler.contract</modelPackage>
+                            <generateSupportingFiles>false</generateSupportingFiles>
+                            <configOptions>
+                                <interfaceOnly>true</interfaceOnly>
+                                <useTags>true</useTags>
+                                <useSwaggerAnnotations>false</useSwaggerAnnotations>
+                                <skipDefaultInterface>true</skipDefaultInterface>
+                                <delegatePattern>false</delegatePattern>
+                                <documentationProvider>none</documentationProvider>
+                                <useResponseEntity>false</useResponseEntity>
+                                <library>spring-boot</library>
+                                <useJakartaEe>true</useJakartaEe>
+                                <openApiNullable>false</openApiNullable>
+                            </configOptions>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>
 
