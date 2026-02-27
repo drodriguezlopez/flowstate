@@ -1,488 +1,137 @@
-openapi: 3.0.0
+openapi: 3.0.3
 info:
-  title: FlowState Command API
-  description: |
-    Command API for the FlowState Task Management System.
-    
-    This API handles all write operations (state-changing actions) following the CQRS pattern.
-    Commands are the primary way to modify the state of tasks in the system.
-    
-    ## Key Concepts
-    - **Commands**: Intent to perform an action that changes system state
-    - **Idempotency**: Commands should be designed to handle retries safely
-    - **Atomicity**: Each command operation should be atomic
+  title: Task Management Command API
+  description: Write-side API for task management based on the Task Management domain.
   version: 1.0.0
-  contact:
-    name: FlowState Team
-    email: support@flowstate.dev
-  license:
-    name: Apache 2.0
-    url: http://www.apache.org/licenses/LICENSE-2.0.html
-
-servers:
-  - url: http://localhost:8080/api/commands
-    description: Local development server
-  - url: https://api.flowstate.dev/commands
-    description: Production server
-
 tags:
-  - name: Task Commands
-    description: Commands for managing tasks
-  - name: Health
-    description: Service health and readiness checks
-
+  - name: Tasks
+    description: Operations related to task management commands
 paths:
-  /tasks/create:
+  /tasks:
     post:
-      tags:
-        - Task Commands
       summary: Create a new task
-      description: |
-        Creates a new task in the system with the provided details.
-        Returns the ID of the newly created task.
       operationId: createTask
+      tags:
+        - Tasks
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateTaskCommand'
-            examples:
-              basic:
-                summary: Basic task creation
-                value:
-                  title: "Implement user authentication"
-                  description: "Add JWT-based authentication to the API"
-                  priority: "HIGH"
-                  dueDate: "2026-03-15T00:00:00Z"
+              $ref: '#/components/schemas/TaskRequest'
       responses:
         '201':
-          description: Task created successfully
+          description: Task successfully created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CommandResponse'
-              example:
-                taskId: "550e8400-e29b-41d4-a716-446655440000"
-                status: "CREATED"
-                message: "Task created successfully"
+                $ref: '#/components/schemas/TaskResponse'
         '400':
-          $ref: '#/components/responses/BadRequest'
-        '409':
-          $ref: '#/components/responses/Conflict'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+          description: Invalid request body.
 
-  /tasks/{taskId}/update-status:
-    post:
-      tags:
-        - Task Commands
-      summary: Update task status
-      description: |
-        Changes the status of a task. Validates that the status transition is allowed
-        according to business rules (e.g., cannot move directly from "To Do" to "Done").
+  /tasks/{taskId}/status:
+    patch:
+      summary: Update task status (updateStatus)
       operationId: updateTaskStatus
+      tags:
+        - Tasks
       parameters:
-        - $ref: '#/components/parameters/TaskId'
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateTaskStatusCommand'
-            examples:
-              startTask:
-                summary: Start a task
-                value:
-                  status: "IN_PROGRESS"
-                  version: 1
-              completeTask:
-                summary: Complete a task
-                value:
-                  status: "DONE"
-                  version: 2
+              type: object
+              properties:
+                status:
+                  $ref: '#/components/schemas/Status'
       responses:
-        '200':
-          description: Task status updated successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CommandResponse'
+        '204':
+          description: Status successfully updated
         '400':
-          $ref: '#/components/responses/BadRequest'
+          description: Invalid status value.
         '404':
-          $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+          description: Task not found.
 
-  /tasks/{taskId}/update-priority:
-    post:
+  /tasks/{taskId}/priority:
+    patch:
+      summary: Adjust task priority (adjustPriority)
+      operationId: adjustTaskPriority
       tags:
-        - Task Commands
-      summary: Update task priority
-      description: |
-        Changes the priority level of a task. Priority changes are validated against
-        organizational rules and current task state.
-      operationId: updateTaskPriority
+        - Tasks
       parameters:
-        - $ref: '#/components/parameters/TaskId'
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateTaskPriorityCommand'
-            examples:
-              increasePriority:
-                summary: Mark as high priority
-                value:
-                  priority: "HIGH"
-                  version: 1
+              type: object
+              properties:
+                priority:
+                  $ref: '#/components/schemas/Priority'
       responses:
-        '200':
-          description: Task priority updated successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CommandResponse'
+        '204':
+          description: Priority successfully adjusted
         '400':
-          $ref: '#/components/responses/BadRequest'
+          description: Invalid priority value.
         '404':
-          $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  /tasks/{taskId}/update-description:
-    post:
-      tags:
-        - Task Commands
-      summary: Update task description
-      description: Updates the detailed description of an existing task.
-      operationId: updateTaskDescription
-      parameters:
-        - $ref: '#/components/parameters/TaskId'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UpdateTaskDescriptionCommand'
-      responses:
-        '200':
-          description: Task description updated successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CommandResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  /tasks/{taskId}/delete:
-    delete:
-      tags:
-        - Task Commands
-      summary: Delete a task
-      description: |
-        Marks a task as deleted. This is a logical delete operation that maintains
-        the audit trail (history) of the task.
-      operationId: deleteTask
-      parameters:
-        - $ref: '#/components/parameters/TaskId'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DeleteTaskCommand'
-      responses:
-        '200':
-          description: Task deleted successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CommandResponse'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  /health:
-    get:
-      tags:
-        - Health
-      summary: Health check
-      description: Returns the health status of the Command API service
-      operationId: healthCheck
-      responses:
-        '200':
-          description: Service is healthy
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HealthResponse'
+          description: Task not found.
 
 components:
-  parameters:
-    TaskId:
-      name: taskId
-      in: path
-      required: true
-      description: The unique identifier of the task
-      schema:
-        type: string
-        format: uuid
-      example: "550e8400-e29b-41d4-a716-446655440000"
-
   schemas:
-    CreateTaskCommand:
+    TaskResponse:
       type: object
-      description: Command to create a new task
+      required:
+        - id
+        - title
+        - status
+        - priority
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          $ref: '#/components/schemas/Status'
+        priority:
+          $ref: '#/components/schemas/Priority'
+
+    TaskRequest:
+      type: object
       required:
         - title
         - priority
       properties:
         title:
           type: string
-          minLength: 1
-          maxLength: 255
-          description: The title of the task
-          example: "Implement user authentication"
+          example: "Implement authentication"
         description:
           type: string
-          maxLength: 2000
-          description: Detailed description of the task
-          example: "Add JWT-based authentication to the API"
-        priority:
-          $ref: '#/components/schemas/Priority'
-        dueDate:
-          type: string
-          format: date-time
-          description: The due date of the task (ISO 8601 format)
-          example: "2026-03-15T00:00:00Z"
-
-    UpdateTaskStatusCommand:
-      type: object
-      description: Command to update the status of a task
-      required:
-        - status
-        - version
-      properties:
+          example: "Configure JWT and user roles"
         status:
-          $ref: '#/components/schemas/TaskStatus'
-        version:
-          type: integer
-          minimum: 0
-          description: The current version of the task (for optimistic locking)
-          example: 1
-
-    UpdateTaskPriorityCommand:
-      type: object
-      description: Command to update the priority of a task
-      required:
-        - priority
-        - version
-      properties:
+          $ref: '#/components/schemas/Status'
         priority:
           $ref: '#/components/schemas/Priority'
-        version:
-          type: integer
-          minimum: 0
-          description: The current version of the task (for optimistic locking)
-          example: 1
 
-    UpdateTaskDescriptionCommand:
-      type: object
-      description: Command to update the description of a task
-      required:
-        - description
-        - version
-      properties:
-        description:
-          type: string
-          maxLength: 2000
-          minLength: 1
-          description: The updated description
-          example: "Updated description for the task"
-        version:
-          type: integer
-          minimum: 0
-          description: The current version of the task (for optimistic locking)
-          example: 1
-
-    DeleteTaskCommand:
-      type: object
-      description: Command to delete a task
-      required:
-        - version
-      properties:
-        version:
-          type: integer
-          minimum: 0
-          description: The current version of the task (for optimistic locking)
-          example: 1
-
-    TaskStatus:
+    Status:
       type: string
-      enum:
-        - TO_DO
-        - IN_PROGRESS
-        - DONE
-        - CANCELLED
-      description: |
-        The status of a task.
-        - `TO_DO`: Task has not been started
-        - `IN_PROGRESS`: Task is currently being worked on
-        - `DONE`: Task has been completed
-        - `CANCELLED`: Task has been cancelled
-      example: "IN_PROGRESS"
+      enum: [TO_DO, IN_PROGRESS, DONE]
 
     Priority:
       type: string
-      enum:
-        - LOW
-        - MEDIUM
-        - HIGH
-        - CRITICAL
-      description: |
-        Priority level of a task.
-        - `LOW`: Can be done when time permits
-        - `MEDIUM`: Should be done soon
-        - `HIGH`: Should be prioritized
-        - `CRITICAL`: Must be done immediately
-      example: "HIGH"
-
-    CommandResponse:
-      type: object
-      description: Response from a command operation
-      required:
-        - taskId
-        - status
-        - message
-      properties:
-        taskId:
-          type: string
-          format: uuid
-          description: The ID of the affected task
-          example: "550e8400-e29b-41d4-a716-446655440000"
-        status:
-          type: string
-          enum:
-            - CREATED
-            - UPDATED
-            - DELETED
-            - FAILED
-          description: The status of the command execution
-          example: "UPDATED"
-        message:
-          type: string
-          description: A human-readable message about the command result
-          example: "Task status updated successfully"
-        timestamp:
-          type: string
-          format: date-time
-          description: The timestamp when the command was processed
-          example: "2026-02-27T10:30:00Z"
-
-    HealthResponse:
-      type: object
-      required:
-        - status
-      properties:
-        status:
-          type: string
-          enum:
-            - UP
-            - DOWN
-          example: "UP"
-        timestamp:
-          type: string
-          format: date-time
-          example: "2026-02-27T10:30:00Z"
-
-    ErrorResponse:
-      type: object
-      description: Standard error response
-      required:
-        - code
-        - message
-      properties:
-        code:
-          type: string
-          description: Error code for programmatic handling
-          example: "INVALID_STATUS_TRANSITION"
-        message:
-          type: string
-          description: Human-readable error message
-          example: "Cannot transition from TO_DO to DONE directly"
-        timestamp:
-          type: string
-          format: date-time
-          description: When the error occurred
-        details:
-          type: object
-          description: Additional error details
-          additionalProperties: true
-
-  responses:
-    BadRequest:
-      description: The request is invalid
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-          example:
-            code: "BAD_REQUEST"
-            message: "Invalid command payload"
-            timestamp: "2026-02-27T10:30:00Z"
-
-    NotFound:
-      description: The requested task was not found
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-          example:
-            code: "TASK_NOT_FOUND"
-            message: "Task with ID 550e8400-e29b-41d4-a716-446655440000 not found"
-            timestamp: "2026-02-27T10:30:00Z"
-
-    Conflict:
-      description: |
-        The command conflicts with the current state.
-        This can occur due to:
-        - Invalid state transition
-        - Optimistic locking conflict (version mismatch)
-        - Business rule violation
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-          example:
-            code: "OPTIMISTIC_LOCK_FAILED"
-            message: "Task was modified. Expected version 1, but current version is 2"
-            timestamp: "2026-02-27T10:30:00Z"
-
-    InternalServerError:
-      description: An unexpected server error occurred
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-          example:
-            code: "INTERNAL_SERVER_ERROR"
-            message: "An unexpected error occurred while processing the command"
-            timestamp: "2026-02-27T10:30:00Z"
-
-
+      enum: [LOW, MEDIUM, HIGH, URGENT]

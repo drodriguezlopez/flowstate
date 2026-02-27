@@ -1,735 +1,128 @@
-openapi: 3.0.0
+openapi: 3.0.3
 info:
-  title: FlowState Query API
-  description: |
-    Query API for the FlowState Task Management System.
-    
-    This API handles all read operations following the CQRS pattern.
-    Queries retrieve data from optimized read models (projections) without modifying state.
-    
-    ## Key Concepts
-    - **Queries**: Read-only requests for data retrieval
-    - **Idempotency**: Queries always return the same result for the same input
-    - **Performance**: Optimized for fast data retrieval using denormalized models
-    - **Eventual Consistency**: Read model may slightly lag behind write model
+  title: Task Management Query API
+  description: Read-side API for retrieving task summaries and audit logs.
   version: 1.0.0
-  contact:
-    name: FlowState Team
-    email: support@flowstate.dev
-  license:
-    name: Apache 2.0
-    url: http://www.apache.org/licenses/LICENSE-2.0.html
-
-servers:
-  - url: http://localhost:8080/api/queries
-    description: Local development server
-  - url: https://api.flowstate.dev/queries
-    description: Production server
 
 tags:
-  - name: Task Queries
-    description: Queries for retrieving task information
-  - name: Task Summary Queries
-    description: Queries for task summary information (lightweight views)
-  - name: Task History Queries
-    description: Queries for task history and audit trails
-  - name: Health
-    description: Service health and readiness checks
+  - name: Tasks
+    description: Operations related to task queries
+  - name: History
+    description: Operations related to task audit logs
 
 paths:
-  /tasks/{taskId}:
-    get:
-      tags:
-        - Task Queries
-      summary: Get task details
-      description: |
-        Retrieves the complete details of a specific task.
-        Returns all information about the task including status, priority, description, and metadata.
-      operationId: getTaskById
-      parameters:
-        - $ref: '#/components/parameters/TaskId'
-      responses:
-        '200':
-          description: Task found and returned successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Task'
-              example:
-                id: "550e8400-e29b-41d4-a716-446655440000"
-                title: "Implement user authentication"
-                description: "Add JWT-based authentication to the API"
-                status: "IN_PROGRESS"
-                priority: "HIGH"
-                dueDate: "2026-03-15T00:00:00Z"
-                createdAt: "2026-02-27T08:00:00Z"
-                updatedAt: "2026-02-27T10:30:00Z"
-                version: 2
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
   /tasks:
     get:
-      tags:
-        - Task Queries
-      summary: List tasks
-      description: |
-        Retrieves a paginated list of tasks with optional filtering and sorting.
-        Perfect for dashboards and task lists.
-      operationId: listTasks
-      parameters:
-        - name: status
-          in: query
-          required: false
-          description: Filter tasks by status
-          schema:
-            $ref: '#/components/schemas/TaskStatus'
-        - name: priority
-          in: query
-          required: false
-          description: Filter tasks by priority
-          schema:
-            $ref: '#/components/schemas/Priority'
-        - name: sortBy
-          in: query
-          required: false
-          description: Field to sort by
-          schema:
-            type: string
-            enum:
-              - createdAt
-              - updatedAt
-              - dueDate
-              - priority
-            default: createdAt
-        - name: sortOrder
-          in: query
-          required: false
-          description: Sort order (ascending or descending)
-          schema:
-            type: string
-            enum:
-              - ASC
-              - DESC
-            default: DESC
-        - name: page
-          in: query
-          required: false
-          description: Page number (0-indexed)
-          schema:
-            type: integer
-            minimum: 0
-            default: 0
-        - name: pageSize
-          in: query
-          required: false
-          description: Number of items per page
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 100
-            default: 20
-      responses:
-        '200':
-          description: List of tasks retrieved successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TaskListResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  /tasks/summaries:
-    get:
-      tags:
-        - Task Summary Queries
-      summary: Get task summaries
-      description: |
-        Retrieves lightweight task summaries optimized for displaying in lists and dashboards.
-        This endpoint is faster than getting full task details as it only returns essential information.
+      summary: List all tasks
+      description: Returns a list of task snapshots.
       operationId: getTaskSummaries
-      parameters:
-        - name: status
-          in: query
-          required: false
-          description: Filter summaries by status
-          schema:
-            $ref: '#/components/schemas/TaskStatus'
-        - name: priority
-          in: query
-          required: false
-          description: Filter summaries by priority
-          schema:
-            $ref: '#/components/schemas/Priority'
-        - name: page
-          in: query
-          required: false
-          description: Page number (0-indexed)
-          schema:
-            type: integer
-            minimum: 0
-            default: 0
-        - name: pageSize
-          in: query
-          required: false
-          description: Number of items per page
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 100
-            default: 50
+      tags:
+        - Tasks
       responses:
         '200':
-          description: Task summaries retrieved successfully
+          description: A list of task summaries.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TaskSummaryListResponse'
-              example:
-                totalCount: 42
-                page: 0
-                pageSize: 50
-                summaries:
-                  - id: "550e8400-e29b-41d4-a716-446655440000"
-                    title: "Implement user authentication"
-                    status: "IN_PROGRESS"
-                    dueDate: "2026-03-15T00:00:00Z"
-                  - id: "660e8400-e29b-41d4-a716-446655440001"
-                    title: "Design database schema"
-                    status: "TO_DO"
-                    dueDate: "2026-03-10T00:00:00Z"
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                type: array
+                items:
+                  $ref: '#/components/schemas/TaskSummaryResponse'
+
+  /tasks/{taskId}:
+    get:
+      summary: Get task by ID
+      description: Retrieve a single task snapshot by its unique identifier.
+      operationId: getTaskById
+      tags:
+        - Tasks
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Task summary for the specified ID.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskSummaryResponse'
+        '404':
+          description: Task not found.
 
   /tasks/{taskId}/history:
     get:
-      tags:
-        - Task History Queries
-      summary: Get task history
-      description: |
-        Retrieves the complete audit trail and change history for a specific task.
-        Shows all modifications made to the task over time with who made the change and when.
+      summary: Get task audit log
+      description: Returns the immutable history of all operations performed on a specific task.
       operationId: getTaskHistory
+      tags:
+        - History
       parameters:
-        - $ref: '#/components/parameters/TaskId'
-        - name: page
-          in: query
-          required: false
-          description: Page number (0-indexed)
+        - name: taskId
+          in: path
+          required: true
           schema:
-            type: integer
-            minimum: 0
-            default: 0
-        - name: pageSize
-          in: query
-          required: false
-          description: Number of items per page
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 100
-            default: 20
+            type: string
+            format: uuid
       responses:
         '200':
-          description: Task history retrieved successfully
+          description: The audit trail for the task.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TaskHistoryResponse'
-              example:
-                taskId: "550e8400-e29b-41d4-a716-446655440000"
-                totalCount: 5
-                page: 0
-                pageSize: 20
-                history:
-                  - id: "750e8400-e29b-41d4-a716-446655440000"
-                    action: "CREATED"
-                    timestamp: "2026-02-27T08:00:00Z"
-                    user: "john.doe@example.com"
-                    changes:
-                      title: "Implement user authentication"
-                      priority: "HIGH"
-                  - id: "750e8400-e29b-41d4-a716-446655440001"
-                    action: "STATUS_CHANGED"
-                    timestamp: "2026-02-27T09:30:00Z"
-                    user: "jane.smith@example.com"
-                    changes:
-                      status: "TO_DO -> IN_PROGRESS"
-                  - id: "750e8400-e29b-41d4-a716-446655440002"
-                    action: "PRIORITY_CHANGED"
-                    timestamp: "2026-02-27T10:30:00Z"
-                    user: "john.doe@example.com"
-                    changes:
-                      priority: "HIGH -> CRITICAL"
+                type: array
+                items:
+                  $ref: '#/components/schemas/TaskHistoryResponse'
         '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  /tasks/by-status/{status}:
-    get:
-      tags:
-        - Task Queries
-      summary: Get tasks by status
-      description: Retrieves all tasks with a specific status.
-      operationId: getTasksByStatus
-      parameters:
-        - name: status
-          in: path
-          required: true
-          description: The status to filter by
-          schema:
-            $ref: '#/components/schemas/TaskStatus'
-        - name: page
-          in: query
-          required: false
-          description: Page number (0-indexed)
-          schema:
-            type: integer
-            minimum: 0
-            default: 0
-        - name: pageSize
-          in: query
-          required: false
-          description: Number of items per page
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 100
-            default: 20
-      responses:
-        '200':
-          description: Tasks with the specified status retrieved successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TaskListResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  /tasks/by-priority/{priority}:
-    get:
-      tags:
-        - Task Queries
-      summary: Get tasks by priority
-      description: Retrieves all tasks with a specific priority level.
-      operationId: getTasksByPriority
-      parameters:
-        - name: priority
-          in: path
-          required: true
-          description: The priority level to filter by
-          schema:
-            $ref: '#/components/schemas/Priority'
-        - name: page
-          in: query
-          required: false
-          description: Page number (0-indexed)
-          schema:
-            type: integer
-            minimum: 0
-            default: 0
-        - name: pageSize
-          in: query
-          required: false
-          description: Number of items per page
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 100
-            default: 20
-      responses:
-        '200':
-          description: Tasks with the specified priority retrieved successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TaskListResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  /tasks/overdue:
-    get:
-      tags:
-        - Task Queries
-      summary: Get overdue tasks
-      description: Retrieves all tasks that have passed their due date and are not completed.
-      operationId: getOverdueTasks
-      parameters:
-        - name: page
-          in: query
-          required: false
-          description: Page number (0-indexed)
-          schema:
-            type: integer
-            minimum: 0
-            default: 0
-        - name: pageSize
-          in: query
-          required: false
-          description: Number of items per page
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 100
-            default: 20
-      responses:
-        '200':
-          description: Overdue tasks retrieved successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TaskListResponse'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  /health:
-    get:
-      tags:
-        - Health
-      summary: Health check
-      description: Returns the health status of the Query API service
-      operationId: healthCheck
-      responses:
-        '200':
-          description: Service is healthy
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HealthResponse'
+          description: Task not found.
 
 components:
-  parameters:
-    TaskId:
-      name: taskId
-      in: path
-      required: true
-      description: The unique identifier of the task
-      schema:
-        type: string
-        format: uuid
-      example: "550e8400-e29b-41d4-a716-446655440000"
-
   schemas:
-    Task:
+    TaskSummaryResponse:
       type: object
-      description: |
-        Complete task information from the read model.
-        Contains all details about a task including its current state and metadata.
-      required:
-        - id
-        - title
-        - status
-        - priority
-        - createdAt
-        - updatedAt
+      description: Task snapshot.
       properties:
         id:
           type: string
           format: uuid
-          description: Unique identifier for the task
-          example: "550e8400-e29b-41d4-a716-446655440000"
         title:
           type: string
-          description: The title of the task
-          example: "Implement user authentication"
+          example: "Implement authentication"
         description:
           type: string
-          nullable: true
-          description: Detailed description of the task
-          example: "Add JWT-based authentication to the API"
+          example: "Configure JWT and user roles"
         status:
-          $ref: '#/components/schemas/TaskStatus'
+          $ref: '#/components/schemas/Status'
         priority:
           $ref: '#/components/schemas/Priority'
-        dueDate:
-          type: string
-          format: date-time
-          nullable: true
-          description: The due date of the task (ISO 8601 format)
-          example: "2026-03-15T00:00:00Z"
-        createdAt:
-          type: string
-          format: date-time
-          description: When the task was created
-          example: "2026-02-27T08:00:00Z"
-        updatedAt:
-          type: string
-          format: date-time
-          description: When the task was last updated
-          example: "2026-02-27T10:30:00Z"
-        version:
-          type: integer
-          description: Current version of the task (for optimistic locking)
-          example: 2
-
-    TaskSummary:
-      type: object
-      description: |
-        Lightweight task summary for fast display in lists and dashboards.
-        Contains only essential information: ID, title, status, and due date.
-      required:
-        - id
-        - title
-        - status
-      properties:
-        id:
-          type: string
-          format: uuid
-          description: Unique identifier for the task
-          example: "550e8400-e29b-41d4-a716-446655440000"
-        title:
-          type: string
-          description: The title of the task
-          example: "Implement user authentication"
-        status:
-          $ref: '#/components/schemas/TaskStatus'
-        dueDate:
-          type: string
-          format: date-time
-          nullable: true
-          description: The due date of the task
-          example: "2026-03-15T00:00:00Z"
-
-    TaskHistory:
-      type: object
-      description: |
-        A single entry in the task's audit trail showing what changed and when.
-        Provides full visibility into the history of modifications.
-      required:
-        - id
-        - action
-        - timestamp
-      properties:
-        id:
-          type: string
-          format: uuid
-          description: Unique identifier for this history entry
-          example: "750e8400-e29b-41d4-a716-446655440000"
-        action:
-          type: string
-          enum:
-            - CREATED
-            - STATUS_CHANGED
-            - PRIORITY_CHANGED
-            - DESCRIPTION_CHANGED
-            - DELETED
-          description: The type of action that was performed
-          example: "STATUS_CHANGED"
-        timestamp:
-          type: string
-          format: date-time
-          description: When the action was performed (ISO 8601 format)
-          example: "2026-02-27T09:30:00Z"
-        user:
-          type: string
-          description: The user who performed the action
-          example: "jane.smith@example.com"
-        changes:
-          type: object
-          description: |
-            Details of what changed. The structure varies based on the action.
-            For status changes, shows the transition (e.g., "TO_DO -> IN_PROGRESS").
-          additionalProperties: true
-          example:
-            status: "TO_DO -> IN_PROGRESS"
-
-    TaskStatus:
-      type: string
-      enum:
-        - TO_DO
-        - IN_PROGRESS
-        - DONE
-        - CANCELLED
-      description: |
-        The status of a task.
-        - `TO_DO`: Task has not been started
-        - `IN_PROGRESS`: Task is currently being worked on
-        - `DONE`: Task has been completed
-        - `CANCELLED`: Task has been cancelled
-      example: "IN_PROGRESS"
-
-    Priority:
-      type: string
-      enum:
-        - LOW
-        - MEDIUM
-        - HIGH
-        - CRITICAL
-      description: |
-        Priority level of a task.
-        - `LOW`: Can be done when time permits
-        - `MEDIUM`: Should be done soon
-        - `HIGH`: Should be prioritized
-        - `CRITICAL`: Must be done immediately
-      example: "HIGH"
-
-    TaskListResponse:
-      type: object
-      description: Paginated list of tasks
-      required:
-        - totalCount
-        - page
-        - pageSize
-        - tasks
-      properties:
-        totalCount:
-          type: integer
-          description: Total number of tasks matching the query
-          example: 42
-        page:
-          type: integer
-          description: Current page number (0-indexed)
-          example: 0
-        pageSize:
-          type: integer
-          description: Number of items per page
-          example: 20
-        tasks:
-          type: array
-          items:
-            $ref: '#/components/schemas/Task'
-
-    TaskSummaryListResponse:
-      type: object
-      description: Paginated list of task summaries
-      required:
-        - totalCount
-        - page
-        - pageSize
-        - summaries
-      properties:
-        totalCount:
-          type: integer
-          description: Total number of summaries matching the query
-          example: 42
-        page:
-          type: integer
-          description: Current page number (0-indexed)
-          example: 0
-        pageSize:
-          type: integer
-          description: Number of items per page
-          example: 50
-        summaries:
-          type: array
-          items:
-            $ref: '#/components/schemas/TaskSummary'
 
     TaskHistoryResponse:
       type: object
-      description: Task history with pagination
-      required:
-        - taskId
-        - totalCount
-        - page
-        - pageSize
-        - history
+      description: Immutable audit trail entry.
       properties:
+        historyId:
+          type: string
+          format: uuid
         taskId:
           type: string
           format: uuid
-          description: The ID of the task
-          example: "550e8400-e29b-41d4-a716-446655440000"
-        totalCount:
-          type: integer
-          description: Total number of history entries
-          example: 5
-        page:
-          type: integer
-          description: Current page number (0-indexed)
-          example: 0
-        pageSize:
-          type: integer
-          description: Number of items per page
-          example: 20
-        history:
-          type: array
-          items:
-            $ref: '#/components/schemas/TaskHistory'
-
-    HealthResponse:
-      type: object
-      required:
-        - status
-      properties:
-        status:
+        action:
           type: string
-          enum:
-            - UP
-            - DOWN
-          example: "UP"
+          example: "STATUS_UPDATED"
         timestamp:
           type: string
           format: date-time
-          example: "2026-02-27T10:30:00Z"
-
-    ErrorResponse:
-      type: object
-      description: Standard error response
-      required:
-        - code
-        - message
-      properties:
-        code:
+          example: "2026-02-27T18:45:00Z"
+        userId:
           type: string
-          description: Error code for programmatic handling
-          example: "TASK_NOT_FOUND"
-        message:
-          type: string
-          description: Human-readable error message
-          example: "Task with ID 550e8400-e29b-41d4-a716-446655440000 not found"
-        timestamp:
-          type: string
-          format: date-time
-          description: When the error occurred
-        details:
-          type: object
-          description: Additional error details
-          additionalProperties: true
+          format: uuid
 
-  responses:
-    BadRequest:
-      description: The request is invalid
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-          example:
-            code: "BAD_REQUEST"
-            message: "Invalid query parameters"
-            timestamp: "2026-02-27T10:30:00Z"
+    Status:
+      type: string
+      enum: [TO_DO, IN_PROGRESS, DONE]
 
-    NotFound:
-      description: The requested task was not found
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-          example:
-            code: "TASK_NOT_FOUND"
-            message: "Task with ID 550e8400-e29b-41d4-a716-446655440000 not found"
-            timestamp: "2026-02-27T10:30:00Z"
-
-    InternalServerError:
-      description: An unexpected server error occurred
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-          example:
-            code: "INTERNAL_SERVER_ERROR"
-            message: "An unexpected error occurred while processing the query"
-            timestamp: "2026-02-27T10:30:00Z"
-
-
+    Priority:
+      type: string
+      enum: [LOW, MEDIUM, HIGH, URGENT]
