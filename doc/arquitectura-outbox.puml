@@ -1,0 +1,59 @@
+@startuml
+skinparam componentStyle uml2
+skinparam backgroundColor #FFFFFF
+skinparam NoteBackgroundColor #EBF5FB
+skinparam NoteBorderColor #2E86C1
+
+title FlowState Architecture: Module-Level Specification
+
+package "FlowState Presentation Layer" {
+  [FlowState Mobile/Web Client] <<module: flowstate-ui>> as client
+}
+
+package "FlowState Command Service (Write Side)" {
+  [FlowState Command Gateway] <<module: flowstate-api-gateway>> as cmdGateway
+  [FlowState Task Handlers] <<module: flowstate-command-handler>> as cmdHandlers
+
+  database "FlowState Primary DB" <<module: flowstate-persistence-sql>> as writeDB {
+    [FlowState Task & State Store] as states
+    [FlowState Outbox Journal] as outbox
+  }
+  [FlowState Event Relay / CDC] <<module: flowstate-event-relay>> as relay
+}
+
+package "FlowState Query Service (Read Side)" {
+  [FlowState Query Gateway] <<module: flowstate-query-api>> as queryGateway
+  [FlowState View Handlers] <<module: flowstate-projection-engine>> as queryHandlers
+  database "FlowState Read Store" <<module: flowstate-persistence-nosql>> as readDB
+}
+
+cloud "FlowState Message Backbone" {
+  [FlowState Event Bus] <<module: flowstate-message-broker>> as eventBus
+}
+
+' --- FlowState Write Pipeline ---
+client --> cmdGateway : 1. Submit Action
+cmdGateway --> cmdHandlers : Route Command
+
+note right of cmdHandlers
+  **FlowState Transaction Boundary**
+  Managed by:
+  //flowstate-command-handler//
+end note
+
+cmdHandlers --> states : 2a. Update Entity
+cmdHandlers --> outbox : 2b. Append Event
+
+' --- FlowState Relay Mechanism ---
+relay --> outbox : 3. Read Journal
+relay --> eventBus : 4. Dispatch to Bus
+
+' --- FlowState Synchronization ---
+eventBus --> readDB : 5. Reconcile View Models
+
+' --- FlowState Read Pipeline ---
+client --> queryGateway : 6. Request Dashboard
+queryGateway --> queryHandlers : Execute Query
+queryHandlers --> readDB : 7. Fetch Optimized Data
+readDB --> client : 8. Response
+@enduml
