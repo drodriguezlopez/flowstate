@@ -1,9 +1,9 @@
 package es.drodriguezlopez.flowstate.commandhandler.service;
 
-import es.drodriguezlopez.flowstate.commandhandler.contract.AdjustTaskPriorityRequest;
-import es.drodriguezlopez.flowstate.commandhandler.contract.TaskRequest;
-import es.drodriguezlopez.flowstate.commandhandler.contract.TaskResponse;
-import es.drodriguezlopez.flowstate.commandhandler.contract.UpdateTaskStatusRequest;
+import es.drodriguezlopez.flowstate.commandhandler.model.AdjustTaskPriorityRequest;
+import es.drodriguezlopez.flowstate.commandhandler.model.TaskRequest;
+import es.drodriguezlopez.flowstate.commandhandler.model.TaskResponse;
+import es.drodriguezlopez.flowstate.commandhandler.model.UpdateTaskStatusRequest;
 
 import java.util.UUID;
 

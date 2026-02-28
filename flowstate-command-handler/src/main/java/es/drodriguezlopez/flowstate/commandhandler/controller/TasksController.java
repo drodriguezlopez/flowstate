@@ -1,10 +1,10 @@
 package es.drodriguezlopez.flowstate.commandhandler.controller;
 
 import es.drodriguezlopez.flowstate.commandhandler.api.TasksApi;
-import es.drodriguezlopez.flowstate.commandhandler.contract.AdjustTaskPriorityRequest;
-import es.drodriguezlopez.flowstate.commandhandler.contract.TaskRequest;
-import es.drodriguezlopez.flowstate.commandhandler.contract.TaskResponse;
-import es.drodriguezlopez.flowstate.commandhandler.contract.UpdateTaskStatusRequest;
+import es.drodriguezlopez.flowstate.commandhandler.model.AdjustTaskPriorityRequest;
+import es.drodriguezlopez.flowstate.commandhandler.model.TaskRequest;
+import es.drodriguezlopez.flowstate.commandhandler.model.TaskResponse;
+import es.drodriguezlopez.flowstate.commandhandler.model.UpdateTaskStatusRequest;
 import es.drodriguezlopez.flowstate.commandhandler.service.TaskService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

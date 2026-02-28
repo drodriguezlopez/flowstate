@@ -20,8 +20,14 @@
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.springframework.kafka</groupId>
-            <artifactId>spring-kafka</artifactId>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>${h2.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct</artifactId>
+            <version>${mapstruct.version}</version>
         </dependency>
     </dependencies>
 
@@ -30,7 +36,7 @@
             <plugin>
                 <groupId>org.openapitools</groupId>
                 <artifactId>openapi-generator-maven-plugin</artifactId>
-                <version>7.20.0</version>
+                <version>${openapi-generator-maven-plugin.version}</version>
                 <executions>
                     <execution>
                         <id>generate-sources</id>
@@ -41,7 +47,7 @@
                             <inputSpec>${project.parent.basedir}/contracts/openapi-commands.yaml</inputSpec>
                             <generatorName>spring</generatorName>
                             <apiPackage>es.drodriguezlopez.flowstate.commandhandler.api</apiPackage>
-                            <modelPackage>es.drodriguezlopez.flowstate.commandhandler.contract</modelPackage>
+                            <modelPackage>es.drodriguezlopez.flowstate.commandhandler.model</modelPackage>
                             <generateSupportingFiles>false</generateSupportingFiles>
                             <configOptions>
                                 <interfaceOnly>true</interfaceOnly>

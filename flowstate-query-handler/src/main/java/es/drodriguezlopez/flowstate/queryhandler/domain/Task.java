@@ -1,4 +1,4 @@
-package es.drodriguezlopez.flowstate.commandhandler.domain;
+package es.drodriguezlopez.flowstate.queryhandler.domain;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
