@@ -41,6 +41,16 @@ spec:
                 }
             }
         }
+
+        stage('Deploy') {
+            steps {
+                container('maven') {
+                    // -B: Batch mode para logs limpios
+                    // -DskipTests: Opcional, dependiendo de tu flujo
+                    sh 'mvn -B com.google.cloud.tools:jib-maven-plugin:3.5.1:build'
+                }
+            }
+        }
     }
 
     post {
