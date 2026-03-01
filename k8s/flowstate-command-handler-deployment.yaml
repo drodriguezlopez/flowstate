@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flowstate-command-handler
+  labels:
+    app: flowstate-command-handler
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flowstate-command-handler
+  template:
+    metadata:
+      labels:
+        app: flowstate-command-handler
+    spec:
+      containers:
+        - name: flowstate-command-handler
+          image: flowstate-command-handler:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "prod"
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1024Mi"
+              cpu: "500m"
+
