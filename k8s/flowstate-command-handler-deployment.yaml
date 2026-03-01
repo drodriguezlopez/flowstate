@@ -10,11 +10,11 @@ metadata:
   name: flowstate-db-config
   namespace: flowstate
 data:
-  SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/flowstate
+  SPRING_DATASOURCE_URL: jdbc:mysql://mysql-service:3306/flowstate
   SPRING_DATASOURCE_USERNAME: flowuser
   SPRING_DATASOURCE_PASSWORD: flowpass
   SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
-  SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.MySQL8Dialect
+  SPRING_JPA_HIBERNATE_DDL_AUTO: update
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -62,11 +62,11 @@ spec:
                 configMapKeyRef:
                   name: flowstate-db-config
                   key: SPRING_DATASOURCE_DRIVER_CLASS_NAME
-            - name: SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT
+            - name: SPRING_JPA_HIBERNATE_DDL_AUTO
               valueFrom:
                 configMapKeyRef:
                   name: flowstate-db-config
-                  key: SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT
+                  key: SPRING_JPA_HIBERNATE_DDL_AUTO
           resources:
             requests:
               memory: "512Mi"

@@ -107,26 +107,5 @@ Step-by-step guide for integrating Jenkins with Kubernetes, enabling dynamic age
 
 ---
 
-## mysql/mysql-deployment.yaml
-
-**Purpose:**
-Kubernetes configuration for deploying a MySQL database with persistent storage and secure credentials.
-
-**Key Details:**
-- **PersistentVolume & Claim:**
-  - Allocates 1Gi storage at `/mnt/data/mysql` for database files.
-- **Deployment:**
-  - Runs MySQL 8.0 as a single pod.
-  - Sets root password, database name, user, and password via environment variables.
-  - Mounts persistent storage at `/var/lib/mysql`.
-- **Service:**
-  - Exposes MySQL on port 3306 within the cluster.
-
-**Usage:**
-- Apply this YAML to deploy a production-ready MySQL instance in Kubernetes.
-- Credentials and storage are managed securely and persistently.
-
----
-
 # End of Documentation
 

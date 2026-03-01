@@ -1,7 +1,14 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: flowstate
+---
 apiVersion: v1
 kind: PersistentVolume
 metadata:
   name: mysql-pv
+  namespace: flowstate
 spec:
   capacity:
     storage: 1Gi
@@ -14,6 +21,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: mysql-pvc
+  namespace: flowstate
 spec:
   accessModes:
     - ReadWriteOnce
@@ -25,6 +33,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: mysql
+  namespace: flowstate
 spec:
   selector:
     matchLabels:
@@ -65,7 +74,8 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: mysql
+  name: mysql-service
+  namespace: flowstate
 spec:
   ports:
   - port: 3306
@@ -76,7 +86,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: mysql-initdb
-  namespace: default
+  namespace: flowstate
   labels:
     app: mysql
     component: initdb
