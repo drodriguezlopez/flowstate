@@ -1,29 +1,47 @@
-### 1. `Task` (The Aggregate Root)
+# Flowstate Project
 
-This is the heart of your domain. It holds the current state and enforces business rules. In CQRS, the "Write" side of your app will load this class to perform actions like creating, updating, or completing a task.
+## Overview
+Flowstate is a modular system designed to manage commands and queries in a scalable, containerized environment. It leverages domain-driven design and supports robust deployment strategies for cloud-native applications.
 
-* **Attributes:** `TaskId`, `Title`, `Description`, `Status` (e.g., Todo, InProgress, Done), `Priority`.
-* **Business Logic:** Methods like `MarkAsCompleted()` or `ChangePriority()` that check if the transition is allowed before updating the state.
+## Architecture & Modules
+- **flowstate-command-api**: Exposes command APIs. [See folder](./flowstate-command-api)
+- **flowstate-command-handler**: Handles command processing. [See folder](./flowstate-command-handler)
+- **flowstate-query-handler**: Handles query processing. [See folder](./flowstate-query-handler)
+- **contracts**: OpenAPI specifications for commands and queries. [See contracts](./contracts)
 
-### 2. `TaskSummary` (The Read Model/DTO)
+## Getting Started
+### Prerequisites
+- Java 21+
+- Maven
+- Kubernetes (for deployment)
 
-Unlike the `Task` class, which is built for logic, this class is built purely for display. In a CQRS architecture, you often project data into a separate, flat table or object optimized for specific screens.
+### Setup & Build
+```sh
+mvn clean install
+```
 
-* **Attributes:** `TaskId`, `Title`, `Status`, `DueDate`.
-* **Purpose:** This is what your "Query" side will return. It doesn't contain logic; it just holds data to be displayed quickly in a list view.
+### Run
+Refer to each module's README for specific run instructions.
 
-### 3. `TaskHistory` (The Event/Audit Log)
+## Usage
+- Command API: See [openapi-commands.yaml](./contracts/openapi-commands.yaml)
+- Query API: See [openapi-queries.yaml](./contracts/openapi-queries.yaml)
 
-CQRS pairs beautifully with Event Sourcing. Having a class that tracks what happened to a task is great for a demo to show the "Audit" side of a system.
+## Domain Context
+- Business logic and requirements: [Functional documentation](./doc/functional/README.md)
+- Technical diagrams: [Diagrams](./doc/technical/diagrams)
 
-* **Attributes:** `HistoryId`, `TaskId`, `ActionType` (e.g., "Created", "StatusChanged"), `Timestamp`, `PerformedBy`.
-* **Purpose:** This captures the "what" and "when," allowing you to show a timeline view without bloating your main `Task` aggregate.
+## Development
+- Code structure: See submodule READMEs
+- Testing: Use Maven test lifecycle
+- Contributing: Guidelines TBD
+- Infrastructure setup: [Infra docs](./doc/infra)
 
----
+## Deployment
+- Containerization: See Docker/Jib setup in each module
+- Kubernetes manifests: [k8s/](./k8s)
+- CI/CD pipeline: [Jenkins pipeline](./doc/infra/jenkins/pipeline.groovy)
 
-### Why this works for a demo
-
-* **Separation:** You can show how a `CreateTaskCommand` updates the `Task` aggregate, while a `GetTaskDashboardQuery` reads from a completely different `TaskSummary` table.
-* **Complexity:** It is simple enough to code quickly but complex enough to show why you wouldn't want to use the same class for saving and reading.
-
-Would you like me to generate a simple code scaffold (in a language of your choice) to show how a command handler would interact with the `Task` aggregate?
+## Further Resources
+- Documentation: See [doc/](./doc)
+- Contact/Support: Add contact info here
