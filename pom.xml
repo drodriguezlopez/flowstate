@@ -106,7 +106,7 @@
                 <version>3.5.1</version>
                 <configuration>
                     <to>
-                        <image>localhost:62257/${project.artifactId}:latest</image>
+                        <image>${REGISTRY_URL}/${project.artifactId}:latest</image>
                     </to>
                 <allowInsecureRegistries>true</allowInsecureRegistries>
                 </configuration>
