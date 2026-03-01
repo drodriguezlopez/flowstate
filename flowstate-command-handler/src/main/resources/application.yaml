@@ -1,10 +1,9 @@
 spring:
   datasource:
-    url: jdbc:h2:mem:testdb
-    driverClassName: org.h2.Driver
-    username: sa
-    password: ""
-    # Spring Boot will automatically execute schema.sql and data.sql on startup if they are present in src/main/resources
+    url: jdbc:mysql://localhost:53935/flowstate
+    driverClassName: com.mysql.cj.jdbc.Driver
+    username: flowuser
+    password: flowpass
   jpa:
     hibernate:
       ddl-auto: none
@@ -12,7 +11,3 @@ spring:
     properties:
       hibernate:
         format_sql: true
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
