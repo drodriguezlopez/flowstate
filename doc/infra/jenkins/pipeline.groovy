@@ -23,6 +23,11 @@ spec:
         }
     }
 
+    environment {
+        // Tu registro en k0s
+        REGISTRY_URL = "registry.rodriguezrodero.com"
+    }
+
     stages {
         stage('Checkout Especial') {
             steps {

@@ -41,4 +41,25 @@ spec:
     - protocol: TCP
       port: 5000
       targetPort: 5000
-      nodePort: 30500
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: registry-ingress
+  namespace: devops-tools
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: registry.rodriguezrodero.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: registry-service
+                port:
+                  number: 5000

@@ -24,17 +24,34 @@ sudo k0s kubectl get nodes
 ```
 You should see your node listed as Ready.
 
-## Step 2: Set Up Ingress Controller
-Ingress controllers manage external access to services in your cluster. The following commands deploy the NGINX ingress controller and set it as the default ingress class.
+## Step 2: Set Up Ingress Controller (Install Using Host Network)
+The host network option exposes Ingress directly using the worker nodes' IP addresses and allows you to use ports 80 and 443. This method does not use Service objects (ClusterIP, NodePort, LoadBalancer) and only one Ingress controller Pod may be scheduled per node.
 
-```bash
-kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.1.3/deploy/static/provider/baremetal/deploy.yaml
-kubectl -n ingress-nginx annotate ingressclasses nginx ingressclass.kubernetes.io/is-default-class="true"
-```
+**Steps:**
+1. Download the NGINX Ingress Controller manifest:
+   ```bash
+   wget https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.1.3/deploy/static/provider/baremetal/deploy.yaml
+   ```
+2. Edit `deploy.yaml`:
+   - Find the `Deployment` named `ingress-nginx-controller`.
+   - Under `spec.template.spec`, add:
+     ```yaml
+     hostNetwork: true
+     ```
+   - Optionally, remove the `Service` named `ingress-nginx-controller` (not needed for host network mode).
+3. Apply the manifest:
+   ```bash
+   kubectl apply -f deploy.yaml
+   ```
+4. Test connectivity:
+   - Deploy a test application and create an Ingress resource.
+   - Try to access it using the worker node's IP address on ports 80/443.
 
-### Notes
-- Ensure your cluster has network connectivity to download the manifest.
-- The annotation sets NGINX as the default ingress class for new ingress resources.
+**Limitations:**
+- Only one Ingress controller Pod per node.
+- No Service object for ingress controller.
+
+---
 
 ## Troubleshooting
 - If you encounter issues with installation, check the k0s logs:
