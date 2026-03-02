@@ -1,5 +1,7 @@
 # FlowState Architecture & Technical Overview
 
+> ← Back to [Documentation Index](../README.md)
+
 ## Introduction
 FlowState is a modular, CQRS-based Task Management System designed for scalability, auditability, and clear separation of concerns. This document provides an overview of the architecture and technical details, referencing the domain model and module-level diagrams.
 
@@ -61,13 +63,5 @@ Enums:
 
 ---
 
-## References
-- [Domain Model Diagram](../functional/domain.puml)
-- [Outbox Architecture Diagram](diagrams/arquitectura-outbox.puml)
-- [k0s Deployment (High Level)](diagrams/k0s-deployment-highlevel.puml)
-- [k0s Deployment (Detailed)](diagrams/k0s-deployment.puml)
-
----
-
-For further details, consult the referenced diagrams and specifications.
+For full component details, consult the referenced diagrams above.
 

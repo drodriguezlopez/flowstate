@@ -1,6 +1,6 @@
-Aquí tienes la traducción completa del documento al inglés:
-
 # Manual: Nginx Proxy + Automatic Wildcard SSL (Cloudflare + Certbot)
+
+> ← Back to [Infrastructure Documentation](../README.md)
 
 ## 1. Prepare the Cloudflare API Token
 
@@ -8,7 +8,7 @@ In order for Certbot to create DNS records for you, it needs permission:
 
 1. Go to your [Cloudflare Dashboard](https://dash.cloudflare.com/profile/api-tokens).
 2. Click on **Create Token** -> Use template **Edit zone DNS**.
-3. Under **Zone Resources**, select `rodriguezrodero.com`.
+3. Under **Zone Resources**, select `your-domain.com`.
 4. Copy the generated Token (we will use it in step 3).
 
 ---
@@ -56,8 +56,8 @@ Now we request the certificate. The plugin will handle communicating with Cloudf
 ```bash
 sudo certbot certonly --dns-cloudflare \
   --dns-cloudflare-credentials /etc/letsencrypt/cloudflare.ini \
-  -d "rodriguezrodero.com" \
-  -d "*.rodriguezrodero.com" \
+  -d "your-domain.com" \
+  -d "*.your-domain.com" \
   --preferred-challenges dns-01
 ```
 
@@ -101,8 +101,8 @@ Since all subdomains use the same Wildcard certificate, let's do the same for th
 **Content:**
 
 ```nginx
-ssl_certificate /etc/letsencrypt/live/rodriguezrodero.com/fullchain.pem;
-ssl_certificate_key /etc/letsencrypt/live/rodriguezrodero.com/privkey.pem;
+ssl_certificate /etc/letsencrypt/live/your-domain.com/fullchain.pem;
+ssl_certificate_key /etc/letsencrypt/live/your-domain.com/privkey.pem;
 
 # Recommended Certbot/Security parameters
 ssl_session_cache shared:le_SSL:10m;
@@ -121,20 +121,20 @@ Create a new configuration file inside `/etc/nginx/conf.d/` to set up the revers
 ```nginx
 server {
     listen 80;
-    server_name *.rodriguezrodero.com;
+    server_name *.your-domain.com;
     return 301 https://$host$request_uri;
 }
 
 server {
     listen 443 ssl;
-    server_name *.rodriguezrodero.com;
+    server_name *.your-domain.com;
 
     # Include SSL settings
     include snippets/ssl-wildcard.conf;
 
     location / {
         # Forward all traffic to the k0s ingress controller
-        proxy_pass https://192.168.8.4;
+        proxy_pass https://<k0s-node-ip>;
 
         # Include proxy parameters
         include snippets/proxy-params.conf;
@@ -147,4 +147,3 @@ Once the file is saved, verify the configuration and reload Nginx:
 ```bash
 sudo nginx -t && sudo systemctl reload nginx
 ```
-

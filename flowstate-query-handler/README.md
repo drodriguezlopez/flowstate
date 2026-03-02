@@ -1,5 +1,7 @@
 # FlowState Query Handler
 
+> ← Back to [Project README](../README.md)
+
 Read-side microservice of the **FlowState** task-management system. It handles all query operations on `Task` view models, serving pre-materialised snapshots and audit-log entries to consumers.
 
 ---
@@ -13,6 +15,7 @@ Read-side microservice of the **FlowState** task-management system. It handles a
 - [Configuration](#configuration)
 - [Building](#building)
 - [Running Locally](#running-locally)
+- [Kubernetes Deployment](#kubernetes-deployment)
 - [Tech Stack](#tech-stack)
 
 ---
@@ -213,6 +216,21 @@ mvn spring-boot:run -pl flowstate-query-handler -Dspring-boot.run.profiles=local
 The service will be available at `http://localhost:8081`.
 
 The H2 web console (for local inspection) is accessible at `http://localhost:8081/h2-console`.
+
+---
+
+## Kubernetes Deployment
+
+Deploy the query handler to your Kubernetes cluster using the manifest located at [`k8s/flowstate-query-handler-deployment.yaml`](../k8s/flowstate-query-handler-deployment.yaml) (create this file following the same structure as the command-handler manifest). It should include:
+
+- A `Namespace` (`flowstate`)
+- A `ConfigMap` with datasource environment variables
+- A `Deployment` pulling from your private registry
+- A `Service` exposing HTTP port `8081`
+
+```bash
+kubectl apply -f k8s/flowstate-query-handler-deployment.yaml
+```
 
 ---
 

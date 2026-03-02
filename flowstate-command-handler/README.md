@@ -1,5 +1,7 @@
 # FlowState Command Handler
 
+> ← Back to [Project README](../README.md)
+
 Write-side microservice of the **FlowState** task-management system. It handles all mutating operations on `Task` aggregates and implements the **Transactional Outbox Pattern** to guarantee reliable event delivery to downstream consumers.
 
 ---

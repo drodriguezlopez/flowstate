@@ -1,5 +1,7 @@
 # Jenkins Agents on Kubernetes: Complete Setup Guide
 
+> ← Back to [Infrastructure Documentation](../README.md)
+
 https://www.jenkins.io/doc/book/installing/kubernetes/
 
 Running Jenkins agents dynamically inside a Kubernetes cluster is one of the best ways to scale your CI/CD infrastructure. Instead of keeping machines running all the time, Jenkins creates a Pod for each job, executes the task, and destroys the Pod when finished.
@@ -51,3 +53,13 @@ Within the cloud configuration, define how the agent Pod will look:
 Once the infrastructure is ready, test it with a sample pipeline. The following code tells Jenkins to use an agent with the label `k0s-agent`:
 
 [Pipeline example](./pipeline.groovy) 
+
+---
+
+## References
+
+- [Jenkins Kubernetes Plugin – Official Docs](https://www.jenkins.io/doc/book/installing/kubernetes/)
+- [Jenkins Kubernetes Plugin – GitHub](https://github.com/jenkinsci/kubernetes-plugin)
+- [Jenkins Kubernetes Manifest](./jenkins.yaml) – Full deployment YAML: RBAC, PersistentVolume, resource limits, HTTP and JNLP ports
+- [Jenkins Pipeline](./pipeline.groovy) – Groovy pipeline used by this project
+

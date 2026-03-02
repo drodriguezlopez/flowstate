@@ -1,5 +1,7 @@
 # k0s Kubernetes Installation Guide
 
+> ← Back to [Infrastructure Documentation](../README.md)
+
 ## Overview
 k0s is a lightweight, certified Kubernetes distribution designed for simplicity and flexibility. It runs on any infrastructure—bare-metal, on-premises, edge, IoT, public and private clouds—and is 100% open source. k0s is ideal for both development and production environments due to its minimal setup and robust features.
 
@@ -57,24 +59,24 @@ The host network option exposes Ingress directly using the worker nodes' IP addr
 A private container registry allows you to store and serve Docker images within your cluster.
 
 **Steps:**
-1Apply the registry manifest:
+1. Apply the registry manifest:
    ```bash
    kubectl apply -f container-registry.yaml
    ```
    This will create:
    - A `Deployment` running the official `registry:2` image, with image data persisted on the host at `/mnt/data/registry`.
    - A `NodePort` `Service` exposing the registry on port `5000`.
-   - An `Ingress` resource routing `registry.rodriguezrodero.com` to the registry service.
+   - An `Ingress` resource routing `registry.your-domain.com` to the registry service.
 
-3. Verify the registry is running:
+2. Verify the registry is running:
    ```bash
    kubectl get all -n devops-tools
    ```
-4. Make sure your DNS (or `/etc/hosts`) resolves `registry.rodriguezrodero.com` to the node's IP address.
-5. Test pushing an image:
+3. Make sure your DNS (or `/etc/hosts`) resolves `registry.your-domain.com` to the node's IP address.
+4. Test pushing an image:
    ```bash
-   docker tag myimage:latest registry.rodriguezrodero.com/myimage:latest
-   docker push registry.rodriguezrodero.com/myimage:latest
+   docker tag myimage:latest registry.your-domain.com/myimage:latest
+   docker push registry.your-domain.com/myimage:latest
    ```
 
 > **Note:** The Ingress annotations set no client body size limit (`client-max-body-size: "0"`) and extended read/send timeouts to accommodate large image layers.

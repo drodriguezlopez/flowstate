@@ -1,42 +1,45 @@
-# Task Management System
+# FlowState – Functional Domain Model
 
-This document merges the core concepts and terminology from both the functional specification and the README, providing a comprehensive overview of the Task Management System and its CQRS architecture.
+> ← Back to [Documentation Index](../README.md)
+
+This document describes the core domain entities and concepts that drive the FlowState task management system, covering the aggregate root, read models, and audit log as used in the CQRS architecture.
 
 ---
 
 ## 1. Task (Aggregate Root / Source of Truth)
 
-The **Task** is the heart of your domain and the primary engine of the system. It holds the current state and enforces business rules. In CQRS, the "Write" side of your app will load this class to perform actions like creating, updating, or completing a task.
+The **Task** is the central domain entity and the primary unit of consistency in the system. It holds the current state and enforces all business rules. On the write (command) side, the application loads this aggregate to perform operations such as creating, updating, or completing a task.
 
-* **Attributes:** Unique ID (`TaskId`), Title, detailed Description, current Status (e.g., To Do, In Progress, Done), and Priority level.
-* **Business Logic:** Methods like `MarkAsCompleted()` or `ChangePriority()` that check if the transition is allowed before updating the state.
+* **Attributes:** Unique ID (`TaskId`), Title, detailed Description, current Status (e.g., `TO_DO`, `IN_PROGRESS`, `DONE`), and Priority level.
+* **Business Logic:** Methods such as `markAsCompleted()` or `changePriority()` validate whether the requested transition is permitted before mutating state.
 * **Key Operations:**
-    * **Updating Status:** Ensures a task can’t be "Completed" if it hasn't been "Started."
-    * **Adjusting Priority:** Validates urgency levels based on organizational rules.
+    * **Updating Status:** Ensures a task cannot be moved to `DONE` unless it has previously been `IN_PROGRESS`.
+    * **Adjusting Priority:** Validates urgency levels according to the domain rules.
 
 ---
 
 ## 2. Task Summary (Read Model / Display View / DTO)
 
-The **Task Summary** is a lightweight, read-only version of a task, built specifically for speed and visibility. In a CQRS architecture, you often project data into a separate, flat table or object optimized for specific screens.
+The **Task Summary** is a lightweight, read-only projection of a task, optimised for speed and display. In the CQRS architecture, data is projected into a separate, denormalised representation suited for specific screens or consumers.
 
 * **Attributes:** Unique ID (`TaskId`), Title, Status, and Due Date.
-* **Purpose:** It acts as a "read-only" snapshot for lists, dashboards, and mobile views. It doesn't contain logic; it just holds data to be displayed quickly.
+* **Purpose:** Acts as a read-only snapshot for lists, dashboards, and mobile views. It carries no business logic; it exists solely to serve data efficiently.
 
 ---
 
 ## 3. Task History (Event / Audit Log / Timeline)
 
-The **Task History** serves as the system's memory, tracking every change that has occurred over time. CQRS pairs beautifully with Event Sourcing, and having a class that tracks what happened to a task is great for audit purposes.
+The **Task History** records every state change that has occurred over the lifetime of a task, providing a full and immutable audit trail.
 
-* **Attributes:** History ID (`HistoryId`), the Task affected (`TaskId`), the Action taken (e.g., "Created", "StatusChanged"), a Timestamp, and the User who performed the action (`PerformedBy`).
-* **Purpose:** This provides a full audit trail, allowing managers to see a timeline of progress and understand the "who, what, and when" behind every update.
+* **Attributes:** History ID (`HistoryId`), the associated Task (`TaskId`), the Action taken (e.g., `CREATED`, `STATUS_CHANGED`), a Timestamp, and the User who performed the action (`PerformedBy`).
+* **Purpose:** Provides a complete audit trail, enabling managers and operators to reconstruct the timeline of any task — capturing who did what and when.
 
 ---
 
-## Why this works for a demo
+## Separation of Concerns in Practice
 
-* **Separation:** You can show how a `CreateTaskCommand` updates the `Task` aggregate, while a `GetTaskDashboardQuery` reads from a completely different `TaskSummary` table.
-* **Complexity:** It is simple enough to code quickly but complex enough to show why you wouldn't want to use the same class for saving and reading.
-
-
+| Concern | Component | Role |
+|---|---|---|
+| Write / State mutation | `Task` aggregate | Enforces invariants; appended to outbox on every change |
+| Read / Display | `TaskSummary` | Denormalised projection used by dashboards and list views |
+| Audit / History | `TaskHistory` | Immutable event log for traceability and compliance |
