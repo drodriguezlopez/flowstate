@@ -118,5 +118,6 @@
     <modules>
         <module>flowstate-command-handler</module>
         <module>flowstate-query-handler</module>
+        <module>flowstate-event-relay</module>
     </modules>
 </project>

@@ -1,0 +1,14 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:61392/flowstate
+    driverClassName: com.mysql.cj.jdbc.Driver
+    username: flowuser
+    password: flowpass
+    # Spring Boot will automatically execute schema.sql and data.sql on startup if they are present in src/main/resources
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
