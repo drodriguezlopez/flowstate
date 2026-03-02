@@ -232,7 +232,7 @@ A ready-to-use manifest is located at [`k8s/flowstate-command-handler-deployment
 
 - A `Namespace` (`flowstate`)
 - A `ConfigMap` with datasource environment variables
-- A `Deployment` pulling from `registry.rodriguezrodero.com/flowstate-command-handler:latest`
+- A `Deployment` pulling from `<your-registry>/flowstate-command-handler:latest`
 - A `Service` exposing the HTTP port
 
 ```bash

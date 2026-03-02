@@ -17,3 +17,4 @@ This folder contains setup guides and Kubernetes manifests for every layer of th
 | Jenkins Setup | [jenkins/README.md](./jenkins/README.md) | Step-by-step guide to connect Jenkins to the k0s cluster and configure dynamic pod agents |
 | Jenkins Manifest | [jenkins/jenkins.yaml](./jenkins/jenkins.yaml) | Full Jenkins deployment: RBAC, PersistentVolume, resource limits, HTTP and JNLP ports |
 | Jenkins Pipeline | [jenkins/pipeline.groovy](./jenkins/pipeline.groovy) | Groovy pipeline: checkout → `mvn clean package` → `jib:build` push to private registry |
+| Kafka & Kafka-UI | [kafka/README.md](./kafka/README.md) | Kubernetes manifests and deployment guide for Apache Kafka and Kafka-UI in the `kafka` namespace |
