@@ -38,7 +38,6 @@ The host network option exposes Ingress directly using the worker nodes' IP addr
      ```yaml
      hostNetwork: true
      ```
-   - Optionally, remove the `Service` named `ingress-nginx-controller` (not needed for host network mode).
 3. Apply the manifest:
    ```bash
    kubectl apply -f deploy.yaml
@@ -50,6 +49,35 @@ The host network option exposes Ingress directly using the worker nodes' IP addr
 **Limitations:**
 - Only one Ingress controller Pod per node.
 - No Service object for ingress controller.
+
+---
+
+## Step 3: Deploy a Container Registry
+
+A private container registry allows you to store and serve Docker images within your cluster.
+
+**Steps:**
+1Apply the registry manifest:
+   ```bash
+   kubectl apply -f container-registry.yaml
+   ```
+   This will create:
+   - A `Deployment` running the official `registry:2` image, with image data persisted on the host at `/mnt/data/registry`.
+   - A `NodePort` `Service` exposing the registry on port `5000`.
+   - An `Ingress` resource routing `registry.rodriguezrodero.com` to the registry service.
+
+3. Verify the registry is running:
+   ```bash
+   kubectl get all -n devops-tools
+   ```
+4. Make sure your DNS (or `/etc/hosts`) resolves `registry.rodriguezrodero.com` to the node's IP address.
+5. Test pushing an image:
+   ```bash
+   docker tag myimage:latest registry.rodriguezrodero.com/myimage:latest
+   docker push registry.rodriguezrodero.com/myimage:latest
+   ```
+
+> **Note:** The Ingress annotations set no client body size limit (`client-max-body-size: "0"`) and extended read/send timeouts to accommodate large image layers.
 
 ---
 
