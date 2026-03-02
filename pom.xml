@@ -109,7 +109,6 @@
                         <image>${REGISTRY_URL}/${project.artifactId}:latest</image>
                     </to>
                     <allowInsecureRegistries>true</allowInsecureRegistries>
-                <allowInsecureRegistries>true</allowInsecureRegistries>
                 </configuration>
             </plugin>
         </plugins>

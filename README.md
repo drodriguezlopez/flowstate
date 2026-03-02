@@ -4,7 +4,6 @@
 Flowstate is a modular system designed to manage commands and queries in a scalable, containerized environment. It leverages domain-driven design and supports robust deployment strategies for cloud-native applications.
 
 ## Architecture & Modules
-- **flowstate-command-api**: Exposes command APIs. [See folder](./flowstate-command-api)
 - **flowstate-command-handler**: Handles command processing. [See folder](./flowstate-command-handler)
 - **flowstate-query-handler**: Handles query processing. [See folder](./flowstate-query-handler)
 - **contracts**: OpenAPI specifications for commands and queries. [See contracts](./contracts)
