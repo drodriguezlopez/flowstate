@@ -1,0 +1,97 @@
+@startuml k0s Deployment Architecture
+
+!include <C4/C4_Component>
+skinparam linetype ortho
+
+title Components deployed in k0s
+
+' ─────────────────────────────────────────────
+' External
+' ─────────────────────────────────────────────
+actor "Client" as client
+
+node "Nginx (host)\n/etc/nginx/conf.d" as nginx_host {
+    component "Reverse Proxy\n*.rodriguezrodero.com" as reverse_proxy
+}
+
+' ─────────────────────────────────────────────
+' k0s Cluster
+' ─────────────────────────────────────────────
+node "k0s Cluster\n192.168.8.4" as k0s {
+
+    ' ── namespace: ingress-nginx ──
+    package "namespace: ingress-nginx" as ns_ingress {
+        component "ingress-nginx-controller\n(hostNetwork: true)" as ingress_ctrl
+    }
+
+    ' ── namespace: devops-tools ──
+    package "namespace: devops-tools" as ns_devops {
+        component "docker-registry\n(registry:2)" as registry_pod
+        component "registry-service\n(NodePort :5000)" as registry_svc
+        component "registry-ingress\nregistry.rodriguezrodero.com" as registry_ing
+
+        database "HostPath\n/mnt/data/registry" as registry_vol
+
+        component "jenkins\n(jenkins/jenkins:lts :8080/:50000)" as jenkins_pod
+        component "jenkins-service\n(ClusterIP :8080/:50000)" as jenkins_svc
+        component "jenkins-ingress\njenkins.rodriguezrodero.com" as jenkins_ing
+
+        database "PersistentVolume\n/mnt/data/jenkins (8Gi)" as jenkins_pv
+    }
+
+    ' ── namespace: flowstate ──
+    package "namespace: flowstate" as ns_flowstate {
+        component "flowstate-command-handler\n(Spring Boot :8080)" as cmd_handler
+        component "flowstate-command-handler-service\n(ClusterIP :8080)" as cmd_svc
+        component "flowstate-command-handler-ingress\nfc.rodriguezrodero.com" as cmd_ing
+        component "ConfigMap\nflowstate-db-config" as db_config
+
+        component "mysql\n(mysql:8.0 :3306)" as mysql_pod
+        component "mysql-service\n(ClusterIP :3306)" as mysql_svc
+        component "ConfigMap\nmysql-initdb" as mysql_initdb
+
+        database "PersistentVolume\n/mnt/data/mysql (1Gi)" as mysql_pv
+        database "PersistentVolumeClaim\nmysql-pvc (1Gi)" as mysql_pvc
+    }
+}
+
+' ─────────────────────────────────────────────
+' External Registry Source
+' ─────────────────────────────────────────────
+node "registry.rodriguezrodero.com" as ext_registry {
+    component "Image: flowstate-command-handler:latest" as img
+}
+
+' ─────────────────────────────────────────────
+' Relationships
+' ─────────────────────────────────────────────
+
+client --> reverse_proxy : HTTPS *.rodriguezrodero.com
+
+reverse_proxy --> ingress_ctrl : proxy_pass\nhttps://192.168.8.4
+
+ingress_ctrl --> registry_ing : route registry.rodriguezrodero.com
+ingress_ctrl --> cmd_ing      : route fc.rodriguezrodero.com
+
+registry_ing --> registry_svc
+registry_svc --> registry_pod
+registry_pod --> registry_vol : store images
+
+ingress_ctrl --> jenkins_ing  : route jenkins.rodriguezrodero.com
+jenkins_ing  --> jenkins_svc
+jenkins_svc  --> jenkins_pod
+jenkins_pod  --> jenkins_pv   : /var/jenkins_home
+
+cmd_ing  --> cmd_svc
+cmd_svc  --> cmd_handler
+cmd_handler --> db_config      : reads env vars
+cmd_handler --> mysql_svc      : JDBC :3306
+mysql_svc    --> mysql_pod
+mysql_pod    --> mysql_pvc
+mysql_pvc    --> mysql_pv      : bound
+mysql_pod    --> mysql_initdb  : init SQL
+
+ext_registry --> cmd_handler   : pull image on start
+
+@enduml
+

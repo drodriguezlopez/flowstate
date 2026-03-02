@@ -1,0 +1,66 @@
+@startuml k0s Deployment Architecture - High Level
+
+skinparam linetype ortho
+skinparam node {
+    BackgroundColor #f5f5f5
+    BorderColor #999999
+}
+skinparam package {
+    BackgroundColor #ddeeff
+    BorderColor #5588cc
+}
+skinparam component {
+    BackgroundColor #ffffff
+    BorderColor #5588cc
+}
+skinparam database {
+    BackgroundColor #fffacd
+    BorderColor #ccaa00
+}
+
+title Components deployed in k0s (High Level)
+
+' ─────────────────────────────────────────────
+' External
+' ─────────────────────────────────────────────
+actor "Client" as client
+
+node "Nginx Host\n/etc/nginx/conf.d" as nginx_host {
+    component "Reverse Proxy\n*.rodriguezrodero.com" as reverse_proxy
+}
+
+' ─────────────────────────────────────────────
+' k0s Cluster
+' ─────────────────────────────────────────────
+node "k0s Cluster\n192.168.8.4" as k0s {
+
+    component "ingress-nginx-controller\n(hostNetwork: true)" as ingress_ctrl
+
+    package "devops-tools" as ns_devops {
+        component "docker-registry\nregistry.rodriguezrodero.com" as registry
+        component "jenkins\njenkins.rodriguezrodero.com" as jenkins
+    }
+
+    package "flowstate" as ns_flowstate {
+        component "flowstate-command-handler\nfc.rodriguezrodero.com" as cmd_handler
+        database "mysql" as mysql
+    }
+}
+
+' ─────────────────────────────────────────────
+' Relationships
+' ─────────────────────────────────────────────
+
+client        --> reverse_proxy  : HTTPS
+reverse_proxy --> ingress_ctrl   : proxy_pass\nhttps://192.168.8.4
+
+ingress_ctrl  --> registry       : registry.rodriguezrodero.com
+ingress_ctrl  --> jenkins        : jenkins.rodriguezrodero.com
+ingress_ctrl  --> cmd_handler    : fc.rodriguezrodero.com
+
+registry      <-- jenkins        : push images
+cmd_handler   --> mysql          : JDBC :3306
+cmd_handler   <-- registry       : pull image
+
+@enduml
+
