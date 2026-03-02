@@ -63,6 +63,9 @@ spec:
           mountPath: /var/lib/mysql
         - name: mysql-initdb
           mountPath: /docker-entrypoint-initdb.d
+        - name: mysql-config
+          mountPath: /etc/mysql/conf.d/my.cnf
+          subPath: my.cnf
       volumes:
       - name: mysql-persistent-storage
         persistentVolumeClaim:
@@ -70,6 +73,9 @@ spec:
       - name: mysql-initdb
         configMap:
           name: mysql-initdb
+      - name: mysql-config
+        configMap:
+          name: mysql-config
 ---
 apiVersion: v1
 kind: Service
@@ -94,3 +100,18 @@ data:
   init-grant.sql: |
     GRANT ALL PRIVILEGES ON flowstate.* TO 'flowuser'@'%';
     FLUSH PRIVILEGES;
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-config
+  namespace: flowstate
+  labels:
+    app: mysql
+    component: config
+data:
+  my.cnf: |
+    [mysqld]
+    log-bin=mysql-bin
+    binlog-format=ROW
+    server-id=1
