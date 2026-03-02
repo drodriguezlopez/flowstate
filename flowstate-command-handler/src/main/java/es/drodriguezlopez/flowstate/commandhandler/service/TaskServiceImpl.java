@@ -41,7 +41,7 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public void adjustTaskPriority(UUID taskId, AdjustTaskPriorityRequest request) {
         taskRepository.updatePriorityById(taskId, taskMapper.toDomain(request.getPriority()));
-        Task task = taskRepository.getReferenceById(taskId);
+        Task task = taskRepository.findById(taskId).orElseThrow(() -> new IllegalArgumentException("Task not found: " + taskId));
         appendOutboxEvent(taskId, "TASK_PRIORITY_ADJUSTED", task);
         log.debug("adjustTaskPriority completed for taskId: {} with request: {}", taskId, request);
     }
@@ -49,7 +49,7 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public void updateTaskStatus(UUID taskId, UpdateTaskStatusRequest request) {
         taskRepository.updateStatusById(taskId, taskMapper.toDomain(request.getStatus()));
-        Task task = taskRepository.getReferenceById(taskId);
+        Task task = taskRepository.findById(taskId).orElseThrow(() -> new IllegalArgumentException("Task not found: " + taskId));
         appendOutboxEvent(taskId, "TASK_STATUS_UPDATED", task);
         log.debug("updateTaskStatus completed for taskId: {} with request: {}", taskId, request);
     }
