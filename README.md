@@ -1,7 +1,7 @@
 # Flowstate Project
 
 ## Overview
-Flowstate is a modular system designed to manage commands and queries in a scalable, containerized environment. It leverages domain-driven design and supports robust deployment strategies for cloud-native applications.
+FlowState is a cloud-native task management system built on a microservices architecture. Each service is independently deployable and responsible for a distinct bounded context within the task management domain. The system applies Command Query Responsibility Segregation (CQRS) to separate write and read concerns, enabling scalability and resilience across all components.
 
 ## Architecture & Modules
 - **[flowstate-command-handler](./flowstate-command-handler/README.md)**: Handles command processing (Write side, port 8080). Requires a running MySQL instance.
