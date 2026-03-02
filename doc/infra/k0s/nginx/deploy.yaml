@@ -298,6 +298,7 @@ subjects:
 apiVersion: v1
 data:
   allow-snippet-annotations: "true"
+  client-max-body-size: "3000m"
 kind: ConfigMap
 metadata:
   labels:
