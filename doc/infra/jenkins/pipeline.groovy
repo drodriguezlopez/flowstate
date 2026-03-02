@@ -25,7 +25,7 @@ spec:
 
     environment {
         // Tu registro en k0s
-        REGISTRY_URL = "registry.rodriguezrodero.com"
+        REGISTRY_URL = "registry-service:5000"
     }
 
     stages {

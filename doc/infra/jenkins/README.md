@@ -50,20 +50,4 @@ Within the cloud configuration, define how the agent Pod will look:
 
 Once the infrastructure is ready, test it with a sample pipeline. The following code tells Jenkins to use an agent with the label `k0s-agent`:
 
-```groovy
-pipeline {
-    agent {
-        kubernetes {
-            label 'k0s-agent'
-        }
-    }
-    stages {
-        stage('Test on K8s') {
-            steps {
-                sh 'echo "Hello from the Kubernetes pod"'
-                sh 'java -version'
-            }
-        }
-    }
-}
-```
+[Pipeline example](./pipeline.groovy) 

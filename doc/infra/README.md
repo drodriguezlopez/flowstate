@@ -106,6 +106,3 @@ Step-by-step guide for integrating Jenkins with Kubernetes, enabling dynamic age
 - Use the provided pipeline and RBAC examples for quick integration.
 
 ---
-
-# End of Documentation
-

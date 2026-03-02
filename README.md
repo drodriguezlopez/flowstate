@@ -52,13 +52,16 @@ Uses an in-memory H2 database when running with the `local` profile. The H2 cons
 
 ## Domain Context
 - Business logic and requirements: [Functional documentation](./doc/functional/README.md)
-- Technical diagrams: [Diagrams](./doc/technical/diagrams)
+- Technical diagrams:
+  - [Outbox Pattern Architecture](./doc/technical/diagrams/arquitectura-outbox.puml)
+  - [k0s Deployment (High Level)](./doc/technical/diagrams/k0s-deployment-highlevel.puml)
+  - [k0s Deployment (Detailed)](./doc/technical/diagrams/k0s-deployment.puml)
 
 ## Development
 - Code structure: See submodule READMEs
 - Testing: Use Maven test lifecycle
 - Contributing: Guidelines TBD
-- Infrastructure setup: [Infra docs](./doc/infra)
+- Infrastructure setup: [Infra docs](./doc/infra/README.md)
 
 ## Deployment
 - Containerization: Images are built and pushed with [Jib](https://github.com/GoogleContainerTools/jib). Set `REGISTRY_URL` to your registry hostname before running:
@@ -75,5 +78,5 @@ Uses an in-memory H2 database when running with the `local` profile. The H2 cons
 - CI/CD pipeline: [Jenkins pipeline](./doc/infra/jenkins/pipeline.groovy)
 
 ## Further Resources
-- Documentation: See [doc/](./doc)
+- Documentation: See [doc/README.md](./doc/README.md)
 - Contact/Support: Add contact info here

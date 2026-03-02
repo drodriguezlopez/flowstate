@@ -54,14 +54,18 @@ Enums:
 ---
 
 ## Diagrams
-- **Domain Model**: See `diagrams/domain.puml` for class relationships and entity structure.
-- **Module Architecture**: See `diagrams/arquitectura-outbox.puml` for module interactions and data flow.
+- **Domain Model**: See [`../functional/domain.puml`](../functional/domain.puml) for class relationships and entity structure.
+- **Outbox Architecture**: See [`diagrams/arquitectura-outbox.puml`](diagrams/arquitectura-outbox.puml) for module interactions and data flow.
+- **k0s Deployment (High Level)**: See [`diagrams/k0s-deployment-highlevel.puml`](diagrams/k0s-deployment-highlevel.puml) for the high-level cluster topology.
+- **k0s Deployment (Detailed)**: See [`diagrams/k0s-deployment.puml`](diagrams/k0s-deployment.puml) for the full per-namespace component breakdown.
 
 ---
 
 ## References
-- [Domain Model Diagram](diagrams/domain.puml)
-- [Module Architecture Diagram](diagrams/arquitectura-outbox.puml)
+- [Domain Model Diagram](../functional/domain.puml)
+- [Outbox Architecture Diagram](diagrams/arquitectura-outbox.puml)
+- [k0s Deployment (High Level)](diagrams/k0s-deployment-highlevel.puml)
+- [k0s Deployment (Detailed)](diagrams/k0s-deployment.puml)
 
 ---
 

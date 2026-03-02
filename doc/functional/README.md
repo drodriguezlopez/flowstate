@@ -39,7 +39,4 @@ The **Task History** serves as the system's memory, tracking every change that h
 * **Separation:** You can show how a `CreateTaskCommand` updates the `Task` aggregate, while a `GetTaskDashboardQuery` reads from a completely different `TaskSummary` table.
 * **Complexity:** It is simple enough to code quickly but complex enough to show why you wouldn't want to use the same class for saving and reading.
 
----
-
-Would you like me to generate a simple code scaffold (in Java or another language) to show how a command handler would interact with the `Task` aggregate?
 
