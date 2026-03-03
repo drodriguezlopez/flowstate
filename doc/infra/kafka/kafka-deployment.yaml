@@ -43,6 +43,12 @@ spec:
               value: CONTROLLER
             - name: KAFKA_INTER_BROKER_LISTENER_NAME
               value: PLAINTEXT
+            # Allow Kafka Connect and Debezium to auto-create internal topics
+            # (debezium_connect_config, debezium_connect_offsets,
+            #  debezium_connect_statuses, dbhistory.flowstate).
+            # In KRaft mode this is OFF by default; turn it on explicitly.
+            - name: KAFKA_AUTO_CREATE_TOPICS_ENABLE
+              value: "true"
 ---
 apiVersion: v1
 kind: Service
@@ -57,7 +63,3 @@ spec:
       protocol: TCP
       port: 9092
       targetPort: 9092
-    - name: controller
-      protocol: TCP
-      port: 9093
-      targetPort: 9093

@@ -99,6 +99,12 @@ metadata:
 data:
   init-grant.sql: |
     GRANT ALL PRIVILEGES ON flowstate.* TO 'flowuser'@'%';
+    -- Debezium CDC requires global-level replication privileges.
+    -- These are NOT included in a database-scoped ALL PRIVILEGES grant.
+    GRANT REPLICATION CLIENT ON *.* TO 'flowuser'@'%';
+    GRANT REPLICATION SLAVE ON *.* TO 'flowuser'@'%';
+    -- Needed so Debezium can read performance_schema for heartbeat / metrics.
+    GRANT SELECT ON performance_schema.* TO 'flowuser'@'%';
     FLUSH PRIVILEGES;
 ---
 apiVersion: v1

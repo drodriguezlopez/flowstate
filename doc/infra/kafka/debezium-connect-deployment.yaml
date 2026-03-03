@@ -1,0 +1,95 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: debezium-connect
+  namespace: kafka
+  labels:
+    app: debezium-connect
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: debezium-connect
+  template:
+    metadata:
+      labels:
+        app: debezium-connect
+    spec:
+      containers:
+        - name: connect
+          image: quay.io/debezium/connect:3.4.1.Final
+          ports:
+            - containerPort: 8083
+          env:
+            - name: BOOTSTRAP_SERVERS
+              value: kafka-service.kafka.svc.cluster.local:9092
+            # Use a descriptive string for GROUP_ID — numeric-only IDs can
+            # confuse the Kafka consumer group protocol and trigger rebalance loops.
+            - name: GROUP_ID
+              value: debezium-connect-cluster
+            - name: CONFIG_STORAGE_TOPIC
+              value: debezium_connect_config
+            - name: OFFSET_STORAGE_TOPIC
+              value: debezium_connect_offsets
+            - name: STATUS_STORAGE_TOPIC
+              value: debezium_connect_statuses
+            - name: CONFIG_STORAGE_REPLICATION_FACTOR
+              value: "1"
+            - name: OFFSET_STORAGE_REPLICATION_FACTOR
+              value: "1"
+            - name: STATUS_STORAGE_REPLICATION_FACTOR
+              value: "1"
+            - name: KEY_CONVERTER
+              value: org.apache.kafka.connect.json.JsonConverter
+            - name: VALUE_CONVERTER
+              value: org.apache.kafka.connect.json.JsonConverter
+            - name: KEY_CONVERTER_SCHEMAS_ENABLE
+              value: "false"
+            - name: VALUE_CONVERTER_SCHEMAS_ENABLE
+              value: "false"
+            # JVM heap — prevents OOM kills that cause restarts.
+            # Keep heap below container limit to leave room for metaspace,
+            # off-heap buffers and OS overhead (rule of thumb: heap = 75% of limit).
+            - name: HEAP_OPTS
+              value: "-Xms512m -Xmx1536m"
+            # Advertise the pod hostname so workers can find each other during rebalance.
+            - name: CONNECT_REST_ADVERTISED_HOST_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: debezium-connect-service
+  namespace: kafka
+spec:
+  selector:
+    app: debezium-connect
+  ports:
+    - name: rest
+      protocol: TCP
+      port: 8083
+      targetPort: 8083
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: debezium-connect-ingress
+  namespace: kafka
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: cdc.rodriguezrodero.com
+      http:
+        paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: debezium-connect-service
+                port:
+                  number: 8083
