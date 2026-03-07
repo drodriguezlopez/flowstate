@@ -32,7 +32,7 @@ kubectl get svc -n kafka
 Apply the Kafka-UI deployment, service, and ingress manifest:
 
 ```bash
-kubectl apply -f kafka-ui-dployment.yaml
+kubectl apply -f kafka-ui-deployment.yaml
 ```
 
 This will create:
