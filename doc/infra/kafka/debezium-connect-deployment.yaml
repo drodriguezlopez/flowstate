@@ -39,6 +39,22 @@ spec:
               value: "1"
             - name: STATUS_STORAGE_REPLICATION_FACTOR
               value: "1"
+            # Advertise the stable Service DNS name instead of the ephemeral pod IP.
+            # Without this the Herder uses the pod IP (visible in logs as
+            # "clientId=connect-<podIP>:8083"), and inter-worker leader-forwarding
+            # breaks when the pod IP is not reachable through the Service/Ingress,
+            # causing POST /connectors to time out and return HTTP 500.
+            #
+            # The Debezium image's run.sh translates CONNECT_<KEY> env vars into
+            # Kafka Connect properties by lowercasing and replacing _ with .
+            # CONNECT_REST_ADVERTISED_HOST_NAME → rest.advertised.host.name
+            # CONNECT_REST_ADVERTISED_PORT      → rest.advertised.port
+            # Plain REST_ADVERTISED_HOST_NAME is NOT translated by run.sh and
+            # is silently ignored, which is why the pod IP kept appearing.
+            - name: ADVERTISED_HOST_NAME
+              value: debezium-connect-service.kafka.svc.cluster.local
+            - name: ADVERTISED_PORT
+              value: "8083"
             - name: KEY_CONVERTER
               value: org.apache.kafka.connect.json.JsonConverter
             - name: VALUE_CONVERTER
@@ -47,16 +63,6 @@ spec:
               value: "false"
             - name: VALUE_CONVERTER_SCHEMAS_ENABLE
               value: "false"
-            # JVM heap — prevents OOM kills that cause restarts.
-            # Keep heap below container limit to leave room for metaspace,
-            # off-heap buffers and OS overhead (rule of thumb: heap = 75% of limit).
-            - name: HEAP_OPTS
-              value: "-Xms512m -Xmx1536m"
-            # Advertise the pod hostname so workers can find each other during rebalance.
-            - name: CONNECT_REST_ADVERTISED_HOST_NAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: status.podIP
 ---
 apiVersion: v1
 kind: Service
