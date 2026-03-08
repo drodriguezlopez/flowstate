@@ -23,7 +23,7 @@ package "FlowState Command Service (Write Side)" {
 
 package "FlowState Query Service (Read Side)" {
   [FlowState Query Gateway] <<module: flowstate-query-api>> as queryGateway
-  [FlowState View Handlers] <<module: flowstate-projection-engine>> as queryHandlers
+  [FlowState View Handlers] <<module: flowstate-query-handler>> as queryHandlers
   database "FlowState Read Store" <<module: flowstate-persistence-nosql>> as readDB
 }
 
@@ -62,11 +62,20 @@ end note
 debezium --> eventBus : 4. Publish to Bus
 
 ' --- FlowState Synchronization ---
-eventBus --> readDB : 5. Reconcile View Models
+eventBus --> queryHandlers : 5. Consume Event
+queryHandlers --> readDB : 6. Reconcile View Models
+
+note right of queryHandlers
+  **FlowState Projection Boundary**
+  Managed by:
+  //flowstate-query-handler//
+  Reads from Event Bus topic,
+  writes to Read Store.
+end note
 
 ' --- FlowState Read Pipeline ---
-client --> queryGateway : 6. Request Dashboard
+client --> queryGateway : 7. Request Dashboard
 queryGateway --> queryHandlers : Execute Query
-queryHandlers --> readDB : 7. Fetch Optimized Data
-readDB --> client : 8. Response
+queryHandlers --> readDB : 8. Fetch Optimized Data
+readDB --> client : 9. Response
 @enduml
