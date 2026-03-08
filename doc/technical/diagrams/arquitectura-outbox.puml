@@ -17,8 +17,8 @@ package "FlowState Command Service (Write Side)" {
   database "FlowState Primary DB" <<module: flowstate-persistence-sql>> as writeDB {
     [FlowState Task & State Store] as states
     [FlowState Outbox Journal] as outbox
+    [MySQL Binlog] as binlog
   }
-  [FlowState Event Relay / CDC] <<module: flowstate-event-relay>> as relay
 }
 
 package "FlowState Query Service (Read Side)" {
@@ -31,6 +31,10 @@ cloud "FlowState Message Backbone" {
   [FlowState Event Bus] <<module: flowstate-message-broker>> as eventBus
 }
 
+node "Kafka Connect" <<infrastructure>> {
+  [Debezium MySQL Connector] <<CDC connector>> as debezium
+}
+
 ' --- FlowState Write Pipeline ---
 client --> cmdGateway : 1. Submit Action
 cmdGateway --> cmdHandlers : Route Command
@@ -41,12 +45,21 @@ note right of cmdHandlers
   //flowstate-command-handler//
 end note
 
-cmdHandlers --> states : 2a. Update Entity
-cmdHandlers --> outbox : 2b. Append Event
+cmdHandlers --> states : 2. Update Entity
 
-' --- FlowState Relay Mechanism ---
-relay --> outbox : 3. Read Journal
-relay --> eventBus : 4. Dispatch to Bus
+' --- FlowState Relay Mechanism (Log-based CDC) ---
+outbox --> binlog : 3a. Binlog captures INSERT
+debezium --> binlog : 3b. Tail Binlog
+
+note top of "Kafka Connect"
+  **Debezium / Kafka Connect**
+  Not a Spring module.
+  Tails MySQL Binlog directly.
+  Resumes from saved offset on crash.
+  Never queries the outbox table.
+end note
+
+debezium --> eventBus : 4. Publish to Bus
 
 ' --- FlowState Synchronization ---
 eventBus --> readDB : 5. Reconcile View Models
