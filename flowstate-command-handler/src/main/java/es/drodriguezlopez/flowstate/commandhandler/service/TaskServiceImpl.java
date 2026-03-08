@@ -1,6 +1,5 @@
 package es.drodriguezlopez.flowstate.commandhandler.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import es.drodriguezlopez.flowstate.commandhandler.domain.Task;
 import es.drodriguezlopez.flowstate.commandhandler.mapper.TaskMapper;
 import es.drodriguezlopez.flowstate.commandhandler.model.AdjustTaskPriorityRequest;
