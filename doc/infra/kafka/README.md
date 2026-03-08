@@ -19,8 +19,14 @@ kubectl apply -f kafka-deployment.yaml
 ```
 
 This will create:
-- A `Deployment` running Apache Kafka (`apache/kafka:4.2.0`) with controller and broker roles
-- A `Service` exposing ports `9092` (broker) and `9093` (controller) as `kafka-service` in the `kafka` namespace
+- A `Deployment` running Apache Kafka (`apache/kafka:4.2.0`) in KRaft mode (combined broker + controller roles)
+- A `Service` exposing the following ports as `kafka-service` in the `kafka` namespace:
+
+| Port | Listener | Purpose |
+|------|----------|---------|
+| `9092` | `PLAINTEXT_HOST` | External / cross-namespace broker access |
+| `19092` | `PLAINTEXT` | Internal inter-broker traffic |
+| `29093` | `CONTROLLER` | KRaft controller quorum |
 
 ### Verify Kafka
 ```bash
@@ -36,7 +42,7 @@ kubectl apply -f kafka-ui-deployment.yaml
 ```
 
 This will create:
-- A `Deployment` for Kafka-UI (`provectuslabs/kafka-ui`)
+- A `Deployment` for Kafka-UI (`provectuslabs/kafka-ui`) with `DYNAMIC_CONFIG_ENABLED=true`
 - A `Service` exposing port `8080` as `kafka-ui-service`
 - An `Ingress` resource routing traffic from `kafka-ui.rodriguezrodero.com` to the UI
 
@@ -47,6 +53,7 @@ This will create:
   192.168.1.100 kafka-ui.rodriguezrodero.com
   ```
 - Open `http://kafka-ui.rodriguezrodero.com` in your browser.
+- The Kafka cluster connection can be configured from the UI at runtime (dynamic config is enabled).
 
 ## Step 3: Deploy Debezium Kafka Connect
 Apply the Debezium Connect deployment, service, and ingress manifest:
@@ -56,7 +63,7 @@ kubectl apply -f debezium-connect-deployment.yaml
 ```
 
 This will create:
-- A `Deployment` for Debezium Kafka Connect (`quay.io/debezium/connect:3.4.1.Final`, compatible with Kafka 4.x KRaft)
+- A `Deployment` for Debezium Kafka Connect (`quay.io/debezium/connect:3.4.0.Final`, compatible with Kafka 4.x KRaft)
 - A `Service` exposing the Kafka Connect REST API on port 8083 as `debezium-connect-service`
 - An `Ingress` resource routing traffic from `cdc.rodriguezrodero.com` to the Connect REST API
 
@@ -66,10 +73,16 @@ The connector config is in `mysql-connector-config.json`. Key fields (Debezium 3
 
 | Field | Value | Notes |
 |---|---|---|
-| `database.hostname` | `mysql-service.flowstate` | Short-form DNS — MySQL is in a different namespace (`flowstate`) |
+| `database.hostname` | `mysql-service.flowstate.svc.cluster.local` | Full FQDN — MySQL is in a different namespace (`flowstate`) |
 | `topic.prefix` | `dbserver1` | Replaces deprecated `database.server.name` (Debezium 2.0+) |
-| `schema.history.internal.kafka.bootstrap.servers` | `kafka-service.kafka:9092` | Replaces deprecated `database.history.kafka.bootstrap.servers` (Debezium 2.0+) |
+| `schema.history.internal.kafka.bootstrap.servers` | `kafka-service.kafka.svc.cluster.local:9092` | Replaces deprecated `database.history.kafka.bootstrap.servers` (Debezium 2.0+) |
 | `schema.history.internal.kafka.topic` | `dbhistory.flowstate` | Internal topic for schema change history |
+| `schema.history.internal.kafka.topic.replication.factor` | `1` | Single-broker cluster |
+| `schema.history.internal.kafka.topic.cleanup.policy` | `delete` | Schema history topic cleanup |
+| `schema.history.internal.kafka.topic.retention.ms` | `-1` | Retain schema history indefinitely |
+| `snapshot.mode` | `initial` | Full snapshot on first run, then streaming |
+| `include.schema.changes` | `true` | Emit DDL change events to the history topic |
+| `heartbeat.interval.ms` | `5000` | Heartbeat events every 5 s to keep offsets advancing |
 
 1. Edit `mysql-connector-config.json` if needed (database, table names, credentials, etc).
 2. Port-forward the Debezium Connect service:
@@ -117,8 +130,11 @@ curl http://localhost:8083/connectors/mysql-connector/status | jq '.tasks[0].tra
 - Consume change events from Kafka topics named like `dbserver1.flowstate.<table>` using your preferred Kafka consumer or Kafka-UI.
 
 ## Configuration Notes
-- Kafka-UI is configured to connect to the Kafka broker via the internal service DNS (`kafka-service.kafka.svc.cluster.local:9092`).
-- Debezium Connect is configured to use the same Kafka broker and will stream MySQL changes to Kafka topics.
+- Kafka is configured with two advertised listeners:
+  - `PLAINTEXT_HOST://kafka-service.kafka.svc.cluster.local:9092` — used by clients (Debezium, Kafka-UI, etc.)
+  - `PLAINTEXT://kafka-service.kafka.svc.cluster.local:19092` — used for internal inter-broker traffic
+- Kafka-UI uses dynamic configuration (`DYNAMIC_CONFIG_ENABLED=true`). Add the Kafka cluster via the web UI after deployment.
+- Debezium Connect is configured to use the same Kafka broker (`kafka-service.kafka.svc.cluster.local:9092`) and will stream MySQL changes to Kafka topics.
 - If you change service or ingress hostnames, update the manifests accordingly.
 
 ## Troubleshooting
@@ -143,17 +159,21 @@ The broker was advertising itself as `kafka-service:9092`. Clients that bootstra
 full FQDN (`kafka-service.kafka.svc.cluster.local:9092`) would receive the short name back
 and might fail to resolve it from different namespaces.
 
-**Fix:** `KAFKA_ADVERTISED_LISTENERS` is now set to `PLAINTEXT://kafka-service.kafka.svc.cluster.local:9092`.
+**Fix:** `KAFKA_ADVERTISED_LISTENERS` is now set to use full FQDNs for both listeners:
+```
+PLAINTEXT_HOST://kafka-service.kafka.svc.cluster.local:9092
+PLAINTEXT://kafka-service.kafka.svc.cluster.local:19092
+```
 
 #### 2. Missing replication privileges for `flowuser`
-Debezium CDC requires **global-level** privileges (`REPLICATION CLIENT`, `REPLICATION SLAVE`)
-that are **not** included in a database-scoped `ALL PRIVILEGES ON flowstate.*` grant.
+Debezium CDC requires **global-level** privileges that are **not** included in a database-scoped `ALL PRIVILEGES ON flowstate.*` grant.
 Without them, the connector task fails immediately after being registered.
 
 **Fix:** `mysql-deployment.yaml` (`init-grant.sql`) now also grants:
 ```sql
 GRANT REPLICATION CLIENT ON *.* TO 'flowuser'@'%';
 GRANT REPLICATION SLAVE  ON *.* TO 'flowuser'@'%';
+GRANT RELOAD             ON *.* TO 'flowuser'@'%';
 GRANT SELECT ON performance_schema.* TO 'flowuser'@'%';
 ```
 If MySQL is already running, apply the grants manually:
@@ -162,9 +182,12 @@ kubectl exec -it <mysql-pod> -n flowstate -- \
   mysql -uroot -prootpass -e "
     GRANT REPLICATION CLIENT ON *.* TO 'flowuser'@'%';
     GRANT REPLICATION SLAVE  ON *.* TO 'flowuser'@'%';
+    GRANT RELOAD             ON *.* TO 'flowuser'@'%';
     GRANT SELECT ON performance_schema.* TO 'flowuser'@'%';
     FLUSH PRIVILEGES;"
 ```
+
+> **`RELOAD`** is required by Debezium to execute `FLUSH TABLES WITH READ LOCK` during the initial snapshot.
 
 ## References
 - [Apache Kafka](https://kafka.apache.org/)

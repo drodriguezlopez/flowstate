@@ -25,30 +25,43 @@ spec:
           image: apache/kafka:4.2.0
           ports:
             - containerPort: 9092
-            - containerPort: 9093
+            - containerPort: 19092
+            - containerPort: 29093
           env:
-            - name: KAFKA_PROCESS_ROLES
-              value: broker,controller
+            # Identity
+            - name: CLUSTER_ID
+              value: '4L6g3nShT-eMCtK--X86sw'
             - name: KAFKA_NODE_ID
               value: "1"
+            # Roles
+            - name: KAFKA_PROCESS_ROLES
+              value: 'broker,controller'
             - name: KAFKA_CONTROLLER_QUORUM_VOTERS
-              value: "1@localhost:9093"
+              value: '1@kafka-service.kafka.svc.cluster.local:29093'
+            # Listeners
             - name: KAFKA_LISTENERS
-              value: PLAINTEXT://:9092,CONTROLLER://:9093
+              value: 'CONTROLLER://:29093,PLAINTEXT_HOST://:9092,PLAINTEXT://:19092'
             - name: KAFKA_ADVERTISED_LISTENERS
-              value: PLAINTEXT://kafka-service.kafka.svc.cluster.local:9092
+              value: 'PLAINTEXT_HOST://kafka-service.kafka.svc.cluster.local:9092,PLAINTEXT://kafka-service.kafka.svc.cluster.local:19092'
             - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
-              value: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
-            - name: KAFKA_CONTROLLER_LISTENER_NAMES
-              value: CONTROLLER
+              value: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT'
             - name: KAFKA_INTER_BROKER_LISTENER_NAME
-              value: PLAINTEXT
-            # Allow Kafka Connect and Debezium to auto-create internal topics
-            # (debezium_connect_config, debezium_connect_offsets,
-            #  debezium_connect_statuses, dbhistory.flowstate).
-            # In KRaft mode this is OFF by default; turn it on explicitly.
-            - name: KAFKA_AUTO_CREATE_TOPICS_ENABLE
-              value: "true"
+              value: 'PLAINTEXT'
+            - name: KAFKA_CONTROLLER_LISTENER_NAMES
+              value: 'CONTROLLER'
+            # Topic / Replication
+            - name: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR
+              value: "1"
+            - name: KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR
+              value: "1"
+            - name: KAFKA_TRANSACTION_STATE_LOG_MIN_ISR
+              value: "1"
+            - name: KAFKA_SHARE_COORDINATOR_STATE_TOPIC_REPLICATION_FACTOR
+              value: "1"
+            - name: KAFKA_SHARE_COORDINATOR_STATE_TOPIC_MIN_ISR
+              value: "1"
+            - name: KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS
+              value: "0"
 ---
 apiVersion: v1
 kind: Service
@@ -63,3 +76,11 @@ spec:
       protocol: TCP
       port: 9092
       targetPort: 9092
+    - name: plaintext-internal
+      protocol: TCP
+      port: 19092
+      targetPort: 19092
+    - name: controller
+      protocol: TCP
+      port: 29093
+      targetPort: 29093

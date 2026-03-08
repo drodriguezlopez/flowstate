@@ -3,7 +3,7 @@
 This deployment sets up a MySQL 8.0 instance on Kubernetes with Change Data Capture (CDC) support enabled via binary logging. This is essential for integrating with CDC tools such as Debezium, Maxwell, or custom binlog readers.
 
 ## Key Features
-- **Binary Logging Enabled**: The deployment configures MySQL with `log-bin`, `binlog-format=ROW`, and a unique `server-id` for CDC compatibility.
+- **Binary Logging Enabled**: The deployment configures MySQL with `log-bin`, `binlog_format=ROW`, and a unique `server-id` for CDC compatibility.
 - **Custom Configuration**: Uses a ConfigMap to inject a custom `my.cnf` into the MySQL container.
 - **Persistent Storage**: Data is stored on a PersistentVolume for durability.
 - **Initialization Scripts**: Grants privileges to the application user at startup.
@@ -14,10 +14,10 @@ This deployment sets up a MySQL 8.0 instance on Kubernetes with Change Data Capt
      ```ini
      [mysqld]
      log-bin=mysql-bin
-     binlog-format=ROW
+     binlog_format=ROW
      server-id=1
      ```
-   - This enables binary logging and sets the format required for CDC tools.
+   - This enables binary logging and sets the format required for CDC tools. Note: `binlog_format` (underscore) is used instead of the deprecated `binlog-format` (hyphen) syntax introduced in MySQL 8.0.
 
 2. **Deployment**
    - The MySQL container mounts the custom `my.cnf` at `/etc/mysql/conf.d/my.cnf`.
