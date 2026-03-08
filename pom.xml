@@ -8,7 +8,7 @@
     <artifactId>flowstate</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <name>FlowState - Outbox Pattern Implementation</name>
+    <name>FlowState - CDC Implementation</name>
     <description>Task Flow Management System with CQRS and Event Sourcing</description>
 
 

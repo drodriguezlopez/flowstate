@@ -1,0 +1,88 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: flowstate-query-db-config
+  namespace: flowstate
+data:
+  SPRING_DATA_MONGODB_URI: mongodb://flowuser:flowpass@mongodb-service:27017/flowstate
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flowstate-query-handler
+  namespace: flowstate
+  labels:
+    app: flowstate-query-handler
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flowstate-query-handler
+  template:
+    metadata:
+      labels:
+        app: flowstate-query-handler
+    spec:
+      containers:
+        - name: flowstate-query-handler
+          image: registry.rodriguezrodero.com/flowstate-query-handler:latest
+          ports:
+            - name: httpport
+              containerPort: 8081
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "prod"
+            - name: SPRING_DATA_MONGODB_URI
+              valueFrom:
+                configMapKeyRef:
+                  name: flowstate-query-db-config
+                  key: SPRING_DATA_MONGODB_URI
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1024Mi"
+              cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: flowstate-query-handler-service
+  namespace: flowstate
+  annotations:
+    prometheus.io/scrape: 'true'
+    prometheus.io/path:   /
+    prometheus.io/port:   '8081'
+spec:
+  selector:
+    app: flowstate-query-handler
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 8081
+      targetPort: 8081
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: flowstate-query-handler-ingress
+  namespace: flowstate
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: fq.rodriguezrodero.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: flowstate-query-handler-service
+                port:
+                  number: 8081
+

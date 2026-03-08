@@ -1,0 +1,18 @@
+server:
+  port: 8081
+
+spring:
+  data:
+    mongodb:
+      uri: mongodb://flowuser:flowpass@localhost:27017/flowstate
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: flowstate-query-handler
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+flowstate:
+  kafka:
+    cdc:
+      topic: dbserver1.flowstate.task
+
