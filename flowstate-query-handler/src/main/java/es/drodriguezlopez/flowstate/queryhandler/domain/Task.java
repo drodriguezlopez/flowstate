@@ -16,7 +16,7 @@ import java.util.UUID;
 @Builder
 public class Task {
     @Id
-    private UUID id;
+    private String id;
     private String title;
     private String description;
     private Status status;

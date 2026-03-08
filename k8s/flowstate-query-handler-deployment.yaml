@@ -5,7 +5,7 @@ metadata:
   name: flowstate-query-db-config
   namespace: flowstate
 data:
-  SPRING_DATA_MONGODB_URI: mongodb://flowuser:flowpass@mongodb-service:27017/flowstate
+  SPRING_DATA_MONGODB_URI: mongodb://flowuser:flowpass@mongodb-service:27017/flowstate?authSource=flowstate
 ---
 apiVersion: apps/v1
 kind: Deployment

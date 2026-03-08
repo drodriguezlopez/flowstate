@@ -1,5 +1,6 @@
 package es.drodriguezlopez.flowstate.queryhandler.service;
 
+import es.drodriguezlopez.flowstate.queryhandler.domain.Task;
 import es.drodriguezlopez.flowstate.queryhandler.model.TaskSummaryResponse;
 
 import java.util.List;
@@ -22,4 +23,6 @@ public interface TaskService {
      * @return a list of all TaskSummaryResponse objects
      */
     List<TaskSummaryResponse> getTaskSummaries();
+
+    void save(Task task);
 }

@@ -1,5 +1,6 @@
 package es.drodriguezlopez.flowstate.queryhandler.service;
 
+import es.drodriguezlopez.flowstate.queryhandler.domain.Task;
 import es.drodriguezlopez.flowstate.queryhandler.mapper.TaskMapper;
 import es.drodriguezlopez.flowstate.queryhandler.model.TaskSummaryResponse;
 import es.drodriguezlopez.flowstate.queryhandler.repository.TaskRepository;
@@ -32,6 +33,11 @@ public class TaskServiceImpl implements TaskService {
         return taskRepository.findAll().stream()
                 .map(taskMapper::toTaskSummaryResponse)
                 .toList();
+    }
+
+    @Override
+    public void save(Task task) {
+        taskRepository.save(task);
     }
 }
 
