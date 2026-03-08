@@ -35,7 +35,7 @@ Architecture decisions, module interactions, and deployment topology.
 | Document | Description |
 |---|---|
 | [Architecture Overview](./technical/README.md) | CQRS structure, Outbox Pattern flow, module breakdown, and technology stack |
-| [Outbox Architecture Diagram](./technical/diagrams/arquitectura-outbox.puml) | Module-level data flow from command submission through event relay to read store |
+| [Outbox Architecture Diagram](technical/diagrams/arquitectura-cdc.puml) | Module-level data flow from command submission through event relay to read store |
 | [k0s Deployment – High Level](./technical/diagrams/k0s-deployment-highlevel.puml) | High-level cluster topology: Nginx reverse proxy, ingress, devops-tools, and flowstate namespaces |
 | [k0s Deployment – Detailed](./technical/diagrams/k0s-deployment.puml) | Full per-namespace component breakdown including services, config maps, volumes, and ingress rules |
 
