@@ -23,7 +23,6 @@ public class TaskServiceImpl implements TaskService {
 
     private final TaskRepository taskRepository;
     private final TaskMapper taskMapper;
-    private final ObjectMapper objectMapper;
 
     @Override
     public TaskResponse createTask(TaskRequest taskRequest) {
