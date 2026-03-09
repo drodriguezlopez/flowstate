@@ -15,4 +15,7 @@ public abstract class TaskMapper {
      * @return the mapped TaskSummaryResponse
      */
     public abstract TaskSummaryResponse toTaskSummaryResponse(Task task);
+
+
+    public abstract Task toTaskDomain(es.drodriguezlopez.flowstate.queryhandler.listener.model.Task task) ;
 }

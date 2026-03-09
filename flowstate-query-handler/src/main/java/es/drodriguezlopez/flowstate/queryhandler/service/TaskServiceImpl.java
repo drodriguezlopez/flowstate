@@ -1,6 +1,7 @@
 package es.drodriguezlopez.flowstate.queryhandler.service;
 
-import es.drodriguezlopez.flowstate.queryhandler.domain.Task;
+
+import es.drodriguezlopez.flowstate.queryhandler.listener.model.Task;
 import es.drodriguezlopez.flowstate.queryhandler.mapper.TaskMapper;
 import es.drodriguezlopez.flowstate.queryhandler.model.TaskSummaryResponse;
 import es.drodriguezlopez.flowstate.queryhandler.repository.TaskRepository;
@@ -22,8 +23,8 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public Optional<TaskSummaryResponse> getTaskById(UUID taskId) {
-        log.debug("Fetching task with ID: {}", taskId);
-        return taskRepository.findById(taskId)
+        log.debug("Fetching task with ID: {}", taskId.toString());
+        return taskRepository.findById(taskId.toString())
                 .map(taskMapper::toTaskSummaryResponse);
     }
 
@@ -37,7 +38,7 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public void save(Task task) {
-        taskRepository.save(task);
+        taskRepository.save(taskMapper.toTaskDomain(task));
     }
 }
 

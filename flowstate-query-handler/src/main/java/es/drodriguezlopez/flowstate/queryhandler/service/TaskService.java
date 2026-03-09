@@ -1,6 +1,7 @@
 package es.drodriguezlopez.flowstate.queryhandler.service;
 
-import es.drodriguezlopez.flowstate.queryhandler.domain.Task;
+
+import es.drodriguezlopez.flowstate.queryhandler.listener.model.Task;
 import es.drodriguezlopez.flowstate.queryhandler.model.TaskSummaryResponse;
 
 import java.util.List;

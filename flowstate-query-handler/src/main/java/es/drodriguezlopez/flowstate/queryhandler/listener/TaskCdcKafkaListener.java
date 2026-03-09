@@ -1,12 +1,13 @@
 package es.drodriguezlopez.flowstate.queryhandler.listener;
 
+
 import com.fasterxml.jackson.databind.ObjectMapper;
-import es.drodriguezlopez.flowstate.queryhandler.domain.Task;
-import es.drodriguezlopez.flowstate.queryhandler.repository.TaskRepository;
+import es.drodriguezlopez.flowstate.queryhandler.listener.model.Task;
 import es.drodriguezlopez.flowstate.queryhandler.service.TaskService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Component;
 
 /**
@@ -26,11 +27,10 @@ public class TaskCdcKafkaListener {
             groupId = "${spring.kafka.consumer.group-id}",
             containerFactory = "kafkaListenerContainerFactory"
     )
-    public void onTaskCdcEvent(String event) {
+    public void onTaskCdcEvent(String event, Acknowledgment ack) {
         log.debug("Received CDC message: {}", event);
         try {
             TaskCdcEvent message = objectMapper.readValue(event, TaskCdcEvent.class);
-
 
             switch (message.getPayload().getOp()) {
                 case "c", "r" -> upsertTask(message.getPayload().getAfter());
@@ -38,6 +38,7 @@ public class TaskCdcKafkaListener {
                 case "d" -> deleteTask(message.getPayload().getBefore());
                 default -> log.warn("Unknown CDC operation '{}', skipping message", message.getPayload().getOp());
             }
+            ack.acknowledge();
         } catch (Exception e) {
             log.error("Error processing CDC message: {}", event, e);
         }

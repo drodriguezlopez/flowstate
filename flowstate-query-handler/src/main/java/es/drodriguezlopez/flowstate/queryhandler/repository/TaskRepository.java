@@ -8,6 +8,6 @@ import java.util.UUID;
 /**
  * Repository interface for managing {@link Task} documents in MongoDB.
  */
-public interface TaskRepository extends MongoRepository<Task, UUID> {
+public interface TaskRepository extends MongoRepository<Task, String> {
 
 }

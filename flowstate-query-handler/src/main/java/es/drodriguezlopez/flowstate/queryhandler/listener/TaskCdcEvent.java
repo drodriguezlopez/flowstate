@@ -1,7 +1,8 @@
 package es.drodriguezlopez.flowstate.queryhandler.listener;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import es.drodriguezlopez.flowstate.queryhandler.domain.Task;
+
+import es.drodriguezlopez.flowstate.queryhandler.listener.model.Task;
 import lombok.Data;
 
 import java.util.UUID;

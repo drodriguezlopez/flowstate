@@ -52,7 +52,8 @@ data:
       user: 'flowuser',
       pwd: 'flowpass',
       roles: [
-        { role: 'readWrite', db: 'flowstate' }
+        { role: 'readWrite', db: 'flowstate' },
+        { role: 'dbAdmin', db: 'flowstate' }
       ]
     });
 ---

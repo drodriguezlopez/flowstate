@@ -2,9 +2,8 @@ server:
   port: 8081
 
 spring:
-  data:
-    mongodb:
-      uri: mongodb://flowuser:flowpass@localhost:27017/flowstate?authSource=flowstate
+  mongodb:
+    uri: mongodb://flowuser:flowpass@localhost:27017/flowstate?authSource=flowstate
   kafka:
     bootstrap-servers: localhost:9092
     consumer:
